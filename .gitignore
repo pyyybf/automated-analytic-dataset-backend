@@ -1,0 +1,9 @@
+/.idea
+
+mongodb_config.py
+
+### Python template
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+.DS_Store
