@@ -11,7 +11,7 @@ import mongodb_config
 client = pymongo.MongoClient(
     f"mongodb+srv://{mongodb_config.username}:{mongodb_config.password}@{mongodb_config.cluster_name}.{mongodb_config.project_id}.mongodb.net/")
 if mongodb_config.db_name in client.list_database_names():
-    print("The database exists.")
+    print(f"The database {mongodb_config.db_name} exists.")
     client.drop_database(mongodb_config.db_name)
 
 db = client[mongodb_config.db_name]
@@ -37,6 +37,20 @@ accounts = [
         "username": "xizhulin@usc.edu",
         "firstName": "Bamboo",
         "lastName": "Lin",
+        "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+        "role": "TA"
+    },
+    {
+        "username": "cwei7837@usc.edu",
+        "firstName": "Chentao",
+        "lastName": "Wei",
+        "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+        "role": "TA"
+    },
+    {
+        "username": "yuerong@usc.edu",
+        "firstName": "Yue",
+        "lastName": "Rong",
         "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
         "role": "TA"
     },
