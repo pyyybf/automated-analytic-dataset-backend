@@ -143,7 +143,7 @@ def api_assignment_get_all():
 
 
 @assignment_blueprint.route("/get/<assignment_id>", methods=["GET"])
-def api_assignment_get(assignment_id):
+def api_assignment_get_by_id(assignment_id):
     try:
         assignment_list = list(assignments.find({
             "_id": ObjectId(assignment_id),
