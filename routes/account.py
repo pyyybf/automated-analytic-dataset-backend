@@ -98,3 +98,14 @@ def api_account_update_pwd():
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
         return build_failure(str(e))
+
+
+@account_blueprint.route("/delete/<account_id>", methods=["DELETE"])
+def api_account_delete_by_id(account_id):
+    try:
+        accounts.delete_one({"_id": ObjectId(account_id)})
+        return build_success(account_id)
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
