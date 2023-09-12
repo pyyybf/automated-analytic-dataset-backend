@@ -3,20 +3,15 @@
 @file: main.py
 @time: 2023/07/10
 """
-
-import os
-import subprocess
 import warnings
 import json
-import uuid
 
-import pymongo
-
-from flask import Flask, Response, request, jsonify
+from flask import Flask
 from flask_cors import CORS
 from bson.json_util import ObjectId
 
-import mongodb_config
+from routes.account import account_blueprint
+from routes.assignment import assignment_blueprint
 
 
 class MyEncoder(json.JSONEncoder):
@@ -26,274 +21,17 @@ class MyEncoder(json.JSONEncoder):
         return super(MyEncoder, self).default(obj)
 
 
-# temporary file directory
-TMP_DIR = "./tmp_generator"  # dev
-# TMP_DIR = "/tmp"  # prod
-
-GENERATE_CODE = {
-    # df.to_csv(f"/tmp/data_{sys.argv[1]}.csv", index=False)
-    "csv": f"df.to_csv(f\"{TMP_DIR}/data_{{sys.argv[1]}}.csv\", index=False)\n",
-    # df.to_json(f"/tmp/data_{sys.argv[1]}.json", orient="records")
-    "json": f"df.to_json(f\"{TMP_DIR}/data_{{sys.argv[1]}}.json\", orient=\"records\")",
-}
-
 app = Flask(__name__)
 app.json_encoder = MyEncoder
 CORS(app)
 
-client = pymongo.MongoClient(
-    f"mongodb+srv://{mongodb_config.username}:{mongodb_config.password}@{mongodb_config.cluster_name}.{mongodb_config.project_id}.mongodb.net/")
-db = client[mongodb_config.db_name]
-accounts = db["accounts"]
-assignments = db["assignments"]
-
-
-def build_success(content, mimetype="application/json"):
-    result = {
-        "success": True,
-        "message": "",
-        "content": content
-    }
-    return Response(jsonify(result).response, mimetype=mimetype)
-
-
-def build_failure(message):
-    result = {
-        "success": False,
-        "message": message,
-        "content": {}
-    }
-    return Response(jsonify(result).response, mimetype="application/json")
+app.register_blueprint(account_blueprint, url_prefix='/api/account')
+app.register_blueprint(assignment_blueprint, url_prefix='/api/assignment')
 
 
 @app.route("/")
 def goodbye_world():
     return app.send_static_file("index.html")
-
-
-# generator
-API_ASSIGNMENT_PRE = "/api/assignment"
-
-
-@app.route(f"{API_ASSIGNMENT_PRE}/data", methods=["POST"])
-def api_assignment_data():
-    try:
-        assignment_id = request.json["id"] or ""
-        file_type = request.json["format"] or "csv"
-        seed = request.json["uscID"][0::2] if "uscID" in request.json.keys() else "None"
-
-        assignment = list(assignments.find({
-            "_id": ObjectId(assignment_id),
-        }))[0]
-
-        code = assignment["code"]
-        import_code = assignment["importCode"]
-
-        # get function name
-        main_func = code[code.find("def ") + 4:code.find("(")] if "def " in code else "generate_ad"
-
-        # add code to call the function
-        call_code = f"ad = {main_func}({seed})\n"
-        call_code += "df = ad.predictor_matrix\n"
-        call_code += "df[ad.response_vector_name or \"Y\"] = ad.response_vector\n"
-
-        # add code to generate data file: csv/json
-        call_code += GENERATE_CODE[file_type]
-
-        # generate an uuid
-        file_id = str(uuid.uuid1())
-
-        with open(f"{TMP_DIR}/generate_df_{file_id}.py", "w", encoding="utf-8") as target:
-            target.write(f"import sys\n{import_code}\n\n\n{code}\n\n\n{call_code}")
-
-        # run generate_df.py to generate data file in temporary file directory
-        process = subprocess.Popen(["python", f"{TMP_DIR}/generate_df_{file_id}.py", file_id])
-        process.wait()
-        process.terminate()
-
-        # read data file as string
-        with open(f"{TMP_DIR}/data_{file_id}.{file_type}", "r", encoding="utf-8") as source:
-            content = source.read()
-
-        # ? delete temporary file
-        os.remove(f"{TMP_DIR}/generate_df_{file_id}.py")
-        os.remove(f"{TMP_DIR}/data_{file_id}.{file_type}")
-
-        return build_success(content, "text/csv" if file_type == "csv" else "application/json")
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ASSIGNMENT_PRE}/save", methods=["POST"])
-def api_assignment_save():
-    try:
-        assignment_id = request.json["id"] or None
-        code = request.json["code"] or "def generate_ad():\n    ad = AnalyticsDataframe(1000, 6)\n    return ad"
-        import_code = request.json["importCode"] or "from analyticsdf.analyticsdataframe import AnalyticsDataframe"
-        name = request.json["name"] or "Assignment"
-        field_list = request.json["fieldList"] or {}
-
-        if assignment_id:
-            assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
-                'code': code,
-                'importCode': import_code,
-                'name': name,
-                'fieldList': field_list,
-            }})
-            return build_success(assignment_id)
-        else:
-            inserted_id = assignments.insert_one({
-                'code': code,
-                'importCode': import_code,
-                'name': name,
-                'fieldList': field_list,
-                'state': 'draft',
-            }).inserted_id
-            return build_success(inserted_id)
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ASSIGNMENT_PRE}/updateState/<assignment_id>", methods=["PUT"])
-def api_assignment_update_state(assignment_id):
-    try:
-        state = request.json["state"] or "draft"
-
-        assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
-            'state': state,
-        }})
-        return build_success(assignment_id)
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ASSIGNMENT_PRE}/getAll", methods=["GET"])
-def api_assignment_get_all():
-    try:
-        role = request.args.get("role") or None
-        if role:
-            assignment_list = list(assignments.find())
-        else:
-            assignment_list = list(assignments.find({
-                "state": "published",
-            }))
-        return build_success(assignment_list)
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ASSIGNMENT_PRE}/get/<assignment_id>", methods=["GET"])
-def api_assignment_get(assignment_id):
-    try:
-        assignment_list = list(assignments.find({
-            "_id": ObjectId(assignment_id),
-        }))
-        if len(assignment_list) > 0:
-            return build_success(assignment_list[0])
-        else:
-            return build_failure("Can't find the assignment.")
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-# account
-API_ACCOUNT_PRE = "/api/account"
-
-
-@app.route(f"{API_ACCOUNT_PRE}/login", methods=["GET"])
-def api_account_login():
-    try:
-        username = request.args.get("username") or ""
-        password = request.args.get("password") or ""
-
-        user = list(accounts.find({
-            "username": username,
-            "password": password,
-        }))
-
-        if len(user) > 0:
-            return build_success({
-                "username": user[0]["username"],
-                "role": user[0]["role"],
-            })
-        else:
-            return build_failure("Incorrect username or password.")
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ACCOUNT_PRE}/getAll", methods=["GET"])
-def api_account_get_all():
-    try:
-        user_list = list(accounts.find())
-
-        return build_success(user_list)
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ACCOUNT_PRE}/save", methods=["POST"])
-def api_account_save():
-    try:
-        account_id = request.json["id"] or None
-        username = request.json["username"] or ""
-        first_name = request.json["firstName"] or ""
-        last_name = request.json["lastName"] or ""
-
-        if account_id:
-            assignments.update_one({"_id": ObjectId(account_id)}, {"$set": {
-                "firstName": first_name,
-                "lastName": last_name,
-            }})
-            return build_success(account_id)
-        else:
-            inserted_id = assignments.insert_one({
-                "username": username,
-                "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",  # sha(123456)
-                "firstName": first_name,
-                "lastName": last_name,
-                "role": "TA",
-            }).inserted_id
-            return build_success(inserted_id)
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
-
-
-@app.route(f"{API_ACCOUNT_PRE}/updatePwd", methods=["PUT"])
-def api_account_update_pwd():
-    try:
-        account_id = request.json["id"] or None
-        old_password = request.json["oldPassword"] or ""
-        new_password = request.json["newPassword"] or "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
-
-        user_list = list(accounts.find({"_id": ObjectId(account_id), "password": old_password}))
-        if len(user_list) > 0:
-            accounts.update_one({"_id": ObjectId(account_id)}, {"$set": {
-                "password": new_password,
-            }})
-            return build_success(account_id)
-        else:
-            return build_failure("Old password isn't valid.")
-
-    except Exception as e:
-        print("Error: ", e.__class__.__name__, e)
-        return build_failure(str(e))
 
 
 if __name__ == "__main__":
