@@ -26,6 +26,8 @@ def api_account_login():
         if len(user) > 0:
             return build_success({
                 "username": user[0]["username"],
+                "firstName": user[0]["firstName"],
+                "lastName": user[0]["lastName"],
                 "role": user[0]["role"],
             })
         else:
