@@ -6,15 +6,17 @@
 
 import pymongo
 
-import mongodb_config
+from config import mongodb
 
 client = pymongo.MongoClient(
-    f"mongodb+srv://{mongodb_config.username}:{mongodb_config.password}@{mongodb_config.cluster_name}.{mongodb_config.project_id}.mongodb.net/")
-if mongodb_config.db_name in client.list_database_names():
-    print(f"The database {mongodb_config.db_name} exists.")
-    client.drop_database(mongodb_config.db_name)
+    f"mongodb+srv://{mongodb.username}:{mongodb.password}@{mongodb.cluster}.{mongodb.project}.mongodb.net/")
 
-db = client[mongodb_config.db_name]
+# drop database if exists
+if mongodb.db_name in client.list_database_names():
+    print(f"The database {mongodb.db_name} exists.")
+    client.drop_database(mongodb.db_name)
+
+db = client[mongodb.db_name]
 accounts_collection = db["accounts"]
 assignments_collection = db["assignments"]
 

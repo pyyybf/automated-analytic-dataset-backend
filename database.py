@@ -4,10 +4,12 @@
 @time: 2023/09/12
 """
 import pymongo
-import mongodb_config
+from config import mongodb
 
 client = pymongo.MongoClient(
-    f"mongodb+srv://{mongodb_config.username}:{mongodb_config.password}@{mongodb_config.cluster_name}.{mongodb_config.project_id}.mongodb.net/")
-db = client[mongodb_config.db_name]
+    f"mongodb+srv://{mongodb.username}:{mongodb.password}@{mongodb.cluster}.{mongodb.project}.mongodb.net/")
+db = client[mongodb.db_name]
+
+# collections
 accounts = db["accounts"]
 assignments = db["assignments"]
