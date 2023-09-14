@@ -21,10 +21,10 @@ GENERATE_CODE = {
     "json": f"df.to_json(f\"{generator.tmp_dir}/data_{{sys.argv[1]}}.json\", orient=\"records\")",
 }
 
-assignment_blueprint = Blueprint('assignment', __name__)
+assignment_bp = Blueprint('assignment', __name__)
 
 
-@assignment_blueprint.route("/data", methods=["POST"])
+@assignment_bp.route("/data", methods=["POST"])
 def api_assignment_data():
     try:
         assignment_id = request.json["id"] or ""
@@ -75,7 +75,7 @@ def api_assignment_data():
         return build_failure(str(e))
 
 
-@assignment_blueprint.route("/save", methods=["POST"])
+@assignment_bp.route("/save", methods=["POST"])
 def api_assignment_save():
     try:
         assignment_id = request.json["id"] or None
@@ -107,7 +107,7 @@ def api_assignment_save():
         return build_failure(str(e))
 
 
-@assignment_blueprint.route("/updateState/<assignment_id>", methods=["PUT"])
+@assignment_bp.route("/updateState/<assignment_id>", methods=["PUT"])
 def api_assignment_update_state(assignment_id):
     try:
         state = request.json["state"] or "draft"
@@ -122,7 +122,7 @@ def api_assignment_update_state(assignment_id):
         return build_failure(str(e))
 
 
-@assignment_blueprint.route("/getAll", methods=["GET"])
+@assignment_bp.route("/getAll", methods=["GET"])
 def api_assignment_get_all():
     try:
         role = request.args.get("role") or None
@@ -139,7 +139,7 @@ def api_assignment_get_all():
         return build_failure(str(e))
 
 
-@assignment_blueprint.route("/get/<assignment_id>", methods=["GET"])
+@assignment_bp.route("/get/<assignment_id>", methods=["GET"])
 def api_assignment_get_by_id(assignment_id):
     try:
         assignment_list = list(assignments.find({

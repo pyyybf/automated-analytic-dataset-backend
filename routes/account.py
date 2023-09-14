@@ -9,10 +9,10 @@ from flask import Blueprint, request
 from database import accounts
 from utils import build_success, build_failure
 
-account_blueprint = Blueprint('account', __name__)
+account_bp = Blueprint('account', __name__)
 
 
-@account_blueprint.route("/login", methods=["GET"])
+@account_bp.route("/login", methods=["GET"])
 def api_account_login():
     try:
         username = request.args.get("username") or ""
@@ -38,7 +38,7 @@ def api_account_login():
         return build_failure(str(e))
 
 
-@account_blueprint.route("/getAll", methods=["GET"])
+@account_bp.route("/getAll", methods=["GET"])
 def api_account_get_all():
     try:
         user_list = list(accounts.find())
@@ -50,7 +50,7 @@ def api_account_get_all():
         return build_failure(str(e))
 
 
-@account_blueprint.route("/save", methods=["POST"])
+@account_bp.route("/save", methods=["POST"])
 def api_account_save():
     try:
         account_id = request.json["id"] or None
@@ -79,7 +79,7 @@ def api_account_save():
         return build_failure(str(e))
 
 
-@account_blueprint.route("/updatePwd", methods=["PUT"])
+@account_bp.route("/updatePwd", methods=["PUT"])
 def api_account_update_pwd():
     try:
         account_id = request.json["id"] or None
@@ -100,7 +100,7 @@ def api_account_update_pwd():
         return build_failure(str(e))
 
 
-@account_blueprint.route("/delete/<account_id>", methods=["DELETE"])
+@account_bp.route("/delete/<account_id>", methods=["DELETE"])
 def api_account_delete_by_id(account_id):
     try:
         accounts.delete_one({"_id": ObjectId(account_id)})
