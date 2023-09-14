@@ -3,9 +3,14 @@
 @file: routes/account.py
 @time: 2023/09/12
 """
+import os
+import pandas as pd
+import uuid
+
 from bson import ObjectId
 from flask import Blueprint, request
 
+from config.generator import tmp_dir
 from database import accounts
 from utils import build_success, build_failure
 
@@ -105,6 +110,50 @@ def api_account_delete_by_id(account_id):
     try:
         accounts.delete_one({"_id": ObjectId(account_id)})
         return build_success(account_id)
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
+
+
+@account_bp.route("/parseAccountFile", methods=["POST"])
+def api_account_parse_account_file():
+    try:
+        file = request.files["file"]
+
+        # save it to temporary directory
+        filename = file.filename.split('.')
+        filename = f"{'.'.join(filename[:-1])}_{uuid.uuid1()}.{filename[-1]}"
+        file.save(f"{tmp_dir}/{filename}")
+
+        # read and parse
+        df = pd.read_excel(f"{tmp_dir}/{filename}")
+        df.rename(columns={"Username/Email": "username", "Last Name": "lastName", "First Name": "firstName"},
+                  inplace=True)
+        account_list = df.to_dict("records")
+
+        # delete it from temporary directory
+        os.remove(f"{tmp_dir}/{filename}")
+
+        return build_success(account_list)
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
+
+
+@account_bp.route("/saveAll", methods=["POST"])
+def api_account_save_all():
+    try:
+        account_list = request.json["accountList"]
+
+        for account in account_list:
+            account["password"] = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+            account["role"] = "TA"
+
+        accounts.insert_many(account_list)
+
+        return build_success()
 
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
