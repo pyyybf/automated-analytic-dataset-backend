@@ -6,7 +6,7 @@
 from flask import Response, jsonify
 
 
-def build_success(content, mimetype="application/json"):
+def build_success(content=None, mimetype="application/json"):
     result = {
         "success": True,
         "message": "",
