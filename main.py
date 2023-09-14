@@ -6,7 +6,7 @@
 import warnings
 import json
 
-from flask import Flask
+from flask import Flask, send_file
 from flask_cors import CORS
 from bson.json_util import ObjectId
 
@@ -32,6 +32,11 @@ app.register_blueprint(assignment_bp, url_prefix='/api/assignment')
 @app.route("/")
 def goodbye_world():
     return app.send_static_file("index.html")
+
+
+@app.route("/static/<file_name>", methods=["GET", "POST"])
+def static_images(file_name):
+    return send_file(f"static/{file_name}")
 
 
 if __name__ == "__main__":
