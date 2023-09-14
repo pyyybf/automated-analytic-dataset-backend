@@ -12,11 +12,11 @@ from utils import build_success, build_failure
 account_bp = Blueprint('account', __name__)
 
 
-@account_bp.route("/login", methods=["GET"])
+@account_bp.route("/login", methods=["POST"])
 def api_account_login():
     try:
-        username = request.args.get("username") or ""
-        password = request.args.get("password") or ""
+        username = request.json["username"] or ""
+        password = request.json["password"] or ""
 
         user = list(accounts.find({
             "username": username,
