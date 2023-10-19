@@ -16,6 +16,8 @@ from utils import build_success, build_failure
 
 account_bp = Blueprint('account', __name__)
 
+SHA256_123456 = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+
 
 @account_bp.route("/login", methods=["POST"])
 def api_account_login():
@@ -30,6 +32,7 @@ def api_account_login():
 
         if len(user) > 0:
             return build_success({
+                "id": user[0]["_id"],
                 "username": user[0]["username"],
                 "firstName": user[0]["firstName"],
                 "lastName": user[0]["lastName"],
@@ -72,7 +75,7 @@ def api_account_save():
         else:
             inserted_id = accounts.insert_one({
                 "username": username,
-                "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",  # sha(123456)
+                "password": SHA256_123456,
                 "firstName": first_name,
                 "lastName": last_name,
                 "role": "TA",
@@ -89,7 +92,7 @@ def api_account_update_pwd():
     try:
         account_id = request.json["id"] or None
         old_password = request.json["oldPassword"] or ""
-        new_password = request.json["newPassword"] or "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+        new_password = request.json["newPassword"] or SHA256_123456
 
         user_list = list(accounts.find({"_id": ObjectId(account_id), "password": old_password}))
         if len(user_list) > 0:
@@ -99,6 +102,44 @@ def api_account_update_pwd():
             return build_success(account_id)
         else:
             return build_failure("Old password isn't valid.")
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
+
+
+@account_bp.route("/resetPwd", methods=["PUT"])
+def api_account_reset_pwd():
+    try:
+        account_id = request.json["id"] or None
+
+        user_list = list(accounts.find({"_id": ObjectId(account_id)}))
+        if len(user_list) > 0:
+            accounts.update_one({"_id": ObjectId(account_id)}, {"$set": {
+                "password": SHA256_123456,
+            }})
+            return build_success(account_id)
+        else:
+            return build_failure("User doesn't exist.")
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
+
+
+@account_bp.route("/initPwd", methods=["PUT"])
+def api_account_init_pwd():
+    try:
+        account_id = request.json["id"] or None
+
+        user_list = list(accounts.find({"_id": ObjectId(account_id)}))
+        if len(user_list) > 0:
+            accounts.update_one({"_id": ObjectId(account_id)}, {"$set": {
+                "password": SHA256_123456,
+            }})
+            return build_success(account_id)
+        else:
+            return build_failure("This user doesn't exist.")
 
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
@@ -148,7 +189,7 @@ def api_account_save_all():
         account_list = request.json["accountList"]
 
         for account in account_list:
-            account["password"] = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+            account["password"] = SHA256_123456
             account["role"] = "TA"
 
         accounts.insert_many(account_list)
