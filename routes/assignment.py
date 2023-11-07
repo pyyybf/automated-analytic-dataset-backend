@@ -82,14 +82,18 @@ def api_assignment_save():
         code = request.json["code"] or "def generate_ad():\n    ad = AnalyticsDataframe(1000, 6)\n    return ad"
         import_code = request.json["importCode"] or "from analyticsdf.analyticsdataframe import AnalyticsDataframe"
         name = request.json["name"] or "Assignment"
-        field_list = request.json["fieldList"] or {}
+        number_of_rows = request.json["numberOfRows"] or 1000
+        field_list = request.json["fieldList"] or []
+        covariance_matrix = request.json["covarianceMatrix"] or {}
 
         if assignment_id:
             assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
                 'code': code,
                 'importCode': import_code,
                 'name': name,
+                'numberOfRows': number_of_rows,
                 'fieldList': field_list,
+                'covarianceMatrix': covariance_matrix,
             }})
             return build_success(assignment_id)
         else:
@@ -97,7 +101,9 @@ def api_assignment_save():
                 'code': code,
                 'importCode': import_code,
                 'name': name,
+                'numberOfRows': number_of_rows,
                 'fieldList': field_list,
+                'covarianceMatrix': covariance_matrix,
                 'state': 'draft',
             }).inserted_id
             return build_success(inserted_id)
