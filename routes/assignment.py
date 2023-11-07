@@ -159,3 +159,14 @@ def api_assignment_get_by_id(assignment_id):
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
         return build_failure(str(e))
+
+
+@assignment_bp.route("/delete/<assignment_id>", methods=["DELETE"])
+def api_account_delete_by_id(assignment_id):
+    try:
+        assignments.delete_one({"_id": ObjectId(assignment_id)})
+        return build_success(assignment_id)
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
