@@ -71,6 +71,7 @@ assignments = [
                 "name": "uni",
                 "lowerBound": 0,
                 "upperBound": 1,
+                "invisible": False,
             },
             {
                 "type": "RESPONSE_VECTOR_LINEAR",
@@ -79,6 +80,7 @@ assignments = [
                 "intercept": 0,
                 "epsilonVariance": 0,
                 "exponent": "",
+                "invisible": False,
             },
         ],
         "covarianceMatrix": {},
@@ -93,6 +95,7 @@ assignments = [
             {
                 "type": "CATEGORICAL", "name": "ca",
                 "categoryList": [{"name": "aaa", "prob": 1}, {"name": "bbb", "prob": "3"}],
+                "invisible": False,
             },
             {
                 "type": "CATEGORICAL_TO_NUMERICAL",
@@ -100,6 +103,7 @@ assignments = [
                 "target": "ca",
                 "categoricalMapping": {"aaa": "1", "bbb": 0},
                 "inplace": False,
+                "invisible": False,
             },
             {
                 "type": "RESPONSE_VECTOR_LINEAR",
@@ -108,6 +112,7 @@ assignments = [
                 "intercept": "7",
                 "epsilonVariance": 0,
                 "exponent": "0.02",
+                "invisible": False,
             },
         ],
         "covarianceMatrix": {},

@@ -37,6 +37,7 @@ def api_assignment_data():
 
         code = assignment["code"]
         import_code = assignment["importCode"]
+        field_list = assignment["fieldList"]
 
         # get function name
         main_func = code[code.find("def ") + 4:code.find("(")] if "def " in code else "generate_ad"
@@ -45,6 +46,14 @@ def api_assignment_data():
         call_code = f"ad = {main_func}({seed})\n"
         call_code += "df = ad.predictor_matrix\n"
         call_code += "df[ad.response_vector_name or \"Y\"] = ad.response_vector\n"
+
+        # drop invisible columns
+        invisible_columns = []
+        for column in field_list:
+            if column["invisible"]:
+                invisible_columns.append(f'"{column["name"]}"')
+        if len(invisible_columns) > 0:
+            call_code += f"df = df.drop([{', '.join(invisible_columns)}], axis=1)\n"
 
         # add code to generate data file: csv/json
         call_code += GENERATE_CODE[file_type]
