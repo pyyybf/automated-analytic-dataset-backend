@@ -22,6 +22,13 @@ assignments_collection = db["assignments"]
 
 accounts = [
     {
+        "username": "admin",
+        "firstName": "",
+        "lastName": "",
+        "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+        "role": "INSTRUCTOR"
+    },
+    {
         "username": "brucewil@usc.edu",
         "firstName": "Bruce",
         "lastName": "Wilcox",
@@ -30,14 +37,14 @@ accounts = [
     },
     {
         "username": "ypan4655@usc.edu",
-        "firstName": "River",
+        "firstName": "Yue",
         "lastName": "Pan",
         "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
         "role": "TA"
     },
     {
         "username": "xizhulin@usc.edu",
-        "firstName": "Bamboo",
+        "firstName": "Xizhu",
         "lastName": "Lin",
         "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
         "role": "TA"
