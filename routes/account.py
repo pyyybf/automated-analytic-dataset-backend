@@ -14,7 +14,7 @@ from config.generator import tmp_dir
 from database import accounts
 from utils import build_success, build_failure
 
-account_bp = Blueprint('account', __name__)
+account_bp = Blueprint("account", __name__)
 
 SHA256_123456 = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
 
@@ -163,7 +163,7 @@ def api_account_parse_account_file():
         file = request.files["file"]
 
         # save it to temporary directory
-        filename = file.filename.split('.')
+        filename = file.filename.split(".")
         filename = f"{'.'.join(filename[:-1])}_{uuid.uuid1()}.{filename[-1]}"
         file.save(f"{tmp_dir}/{filename}")
 

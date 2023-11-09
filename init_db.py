@@ -67,18 +67,18 @@ assignments = [
         "numberOfRows": 1000,
         "fieldList": [
             {
-                'type': 'UNIFORM',
-                'name': 'uni',
-                'lowerBound': 0,
-                'upperBound': 1
+                "type": "UNIFORM",
+                "name": "uni",
+                "lowerBound": 0,
+                "upperBound": 1,
             },
             {
-                'type': 'RESPONSE_VECTOR_LINEAR',
-                'name': 'Y',
-                'predictorList': {'uni': {'checked': True}},
-                'intercept': 0,
-                'epsilonVariance': 0,
-                'exponent': ''
+                "type": "RESPONSE_VECTOR_LINEAR",
+                "name": "Y",
+                "predictorList": {"uni": {"checked": True}},
+                "intercept": 0,
+                "epsilonVariance": 0,
+                "exponent": "",
             },
         ],
         "covarianceMatrix": {},
@@ -91,23 +91,23 @@ assignments = [
         "numberOfRows": 1000,
         "fieldList": [
             {
-                'type': 'CATEGORICAL', 'name': 'ca',
-                'categoryList': [{'name': 'aaa', 'prob': 1}, {'name': 'bbb', 'prob': '3'}]
+                "type": "CATEGORICAL", "name": "ca",
+                "categoryList": [{"name": "aaa", "prob": 1}, {"name": "bbb", "prob": "3"}],
             },
             {
-                'type': 'CATEGORICAL_TO_NUMERICAL',
-                'name': 'ca_weight',
-                'target': 'ca',
-                'categoricalMapping': {'aaa': '1', 'bbb': 0},
-                'inplace': False
+                "type": "CATEGORICAL_TO_NUMERICAL",
+                "name": "ca_weight",
+                "target": "ca",
+                "categoricalMapping": {"aaa": "1", "bbb": 0},
+                "inplace": False,
             },
             {
-                'type': 'RESPONSE_VECTOR_LINEAR',
-                'name': 'Y',
-                'predictorList': {'ca_weight': {'checked': True, 'beta': '12'}},
-                'intercept': '7',
-                'epsilonVariance': 0,
-                'exponent': '0.02'
+                "type": "RESPONSE_VECTOR_LINEAR",
+                "name": "Y",
+                "predictorList": {"ca_weight": {"checked": True, "beta": "12"}},
+                "intercept": "7",
+                "epsilonVariance": 0,
+                "exponent": "0.02",
             },
         ],
         "covarianceMatrix": {},

@@ -21,7 +21,7 @@ GENERATE_CODE = {
     "json": f"df.to_json(f\"{generator.tmp_dir}/data_{{sys.argv[1]}}.json\", orient=\"records\")",
 }
 
-assignment_bp = Blueprint('assignment', __name__)
+assignment_bp = Blueprint("assignment", __name__)
 
 
 @assignment_bp.route("/data", methods=["POST"])
@@ -88,23 +88,23 @@ def api_assignment_save():
 
         if assignment_id:
             assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
-                'code': code,
-                'importCode': import_code,
-                'name': name,
-                'numberOfRows': number_of_rows,
-                'fieldList': field_list,
-                'covarianceMatrix': covariance_matrix,
+                "code": code,
+                "importCode": import_code,
+                "name": name,
+                "numberOfRows": number_of_rows,
+                "fieldList": field_list,
+                "covarianceMatrix": covariance_matrix,
             }})
             return build_success(assignment_id)
         else:
             inserted_id = assignments.insert_one({
-                'code': code,
-                'importCode': import_code,
-                'name': name,
-                'numberOfRows': number_of_rows,
-                'fieldList': field_list,
-                'covarianceMatrix': covariance_matrix,
-                'state': 'draft',
+                "code": code,
+                "importCode": import_code,
+                "name": name,
+                "numberOfRows": number_of_rows,
+                "fieldList": field_list,
+                "covarianceMatrix": covariance_matrix,
+                "state": "draft",
             }).inserted_id
             return build_success(inserted_id)
 
@@ -119,7 +119,7 @@ def api_assignment_update_state(assignment_id):
         state = request.json["state"] or "draft"
 
         assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
-            'state': state,
+            "state": state,
         }})
         return build_success(assignment_id)
 
