@@ -23,6 +23,10 @@ GENERATE_CODE = {
 
 assignment_bp = Blueprint("assignment", __name__)
 
+# mkdir when tmp directory not exists
+if not os.path.exists(generator.tmp_dir):
+    os.mkdir(generator.tmp_dir)
+
 
 @assignment_bp.route("/data", methods=["POST"])
 def api_assignment_data():
