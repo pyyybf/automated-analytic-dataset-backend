@@ -145,11 +145,17 @@ def api_assignment_update_state(assignment_id):
 def api_assignment_get_all():
     try:
         role = request.args.get("role") or None
-        if role:
+        if role == "TA" or role == "INSTRUCTOR":
             assignment_list = list(assignments.find())
         else:
             assignment_list = list(assignments.find({
                 "state": "published",
+            }, {
+                "code": 0,
+                "covarianceMatrix": 0,
+                "fieldList": 0,
+                "importCode": 0,
+                "numberOfRows": 0,
             }))
         return build_success(assignment_list)
 

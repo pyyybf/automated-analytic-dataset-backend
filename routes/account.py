@@ -49,7 +49,7 @@ def api_account_login():
 @account_bp.route("/getAll", methods=["GET"])
 def api_account_get_all():
     try:
-        user_list = list(accounts.find())
+        user_list = list(accounts.find(None, {"password": 0}))
 
         return build_success(user_list)
 
