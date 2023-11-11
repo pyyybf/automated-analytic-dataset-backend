@@ -2,7 +2,9 @@
 
 Automated Analytic Dataset Project: Backend for Automated Dataset Generation
 
-- Configure MongoDB in `mongodb_config.py`
+## Getting Started
+
+ - Configure MongoDB in `mongodb_config.py`
 
  - Initiate database
 
@@ -10,7 +12,7 @@ Automated Analytic Dataset Project: Backend for Automated Dataset Generation
    python init_db.py
    ```
 
-- Run Flask
+- Start service
 
   ```shell
   python main.py
