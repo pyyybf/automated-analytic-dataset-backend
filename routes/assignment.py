@@ -11,21 +11,21 @@ from bson import ObjectId
 from flask import Blueprint, request
 
 from database import assignments
-from utils import build_failure, build_success
-from config import generator
+from utils.response import build_failure, build_success
+from config.generator import tmp_dir
 
 GENERATE_CODE = {
     # df.to_csv(f"/tmp/data_{sys.argv[1]}.csv", index=False)
-    "csv": f"df.to_csv(f\"{generator.tmp_dir}/data_{{sys.argv[1]}}.csv\", index=False)\n",
+    "csv": f"df.to_csv(f\"{tmp_dir}/data_{{sys.argv[1]}}.csv\", index=False)\n",
     # df.to_json(f"/tmp/data_{sys.argv[1]}.json", orient="records")
-    "json": f"df.to_json(f\"{generator.tmp_dir}/data_{{sys.argv[1]}}.json\", orient=\"records\")",
+    "json": f"df.to_json(f\"{tmp_dir}/data_{{sys.argv[1]}}.json\", orient=\"records\")",
 }
 
 assignment_bp = Blueprint("assignment", __name__)
 
 # mkdir when tmp directory not exists
-if not os.path.exists(generator.tmp_dir):
-    os.mkdir(generator.tmp_dir)
+if not os.path.exists(tmp_dir):
+    os.mkdir(tmp_dir)
 
 
 @assignment_bp.route("/data", methods=["POST"])
@@ -65,21 +65,25 @@ def api_assignment_data():
         # generate an uuid
         file_id = str(uuid.uuid1())
 
-        with open(f"{generator.tmp_dir}/generate_df_{file_id}.py", "w", encoding="utf-8") as target:
+        # script_path = f"{tmp_dir}/generate_df_{file_id}.py"
+        script_path = os.path.join(tmp_dir, f"generate_df_{file_id}.py")
+        with open(script_path, "w", encoding="utf-8") as target:
             target.write(f"import sys\n{import_code}\n\n\n{code}\n\n\n{call_code}")
 
         # run generate_df.py to generate data file in temporary file directory
-        process = subprocess.Popen(["python", f"{generator.tmp_dir}/generate_df_{file_id}.py", file_id])
+        process = subprocess.Popen(["python", script_path, file_id])
         process.wait()
         process.terminate()
 
         # read data file as string
-        with open(f"{generator.tmp_dir}/data_{file_id}.{file_type}", "r", encoding="utf-8") as source:
+        # dataset_path = f"{tmp_dir}/data_{file_id}.{file_type}"
+        dataset_path = os.path.join(tmp_dir, f"data_{file_id}.{file_type}")
+        with open(dataset_path, "r", encoding="utf-8") as source:
             content = source.read()
 
-        # ? delete temporary file
-        os.remove(f"{generator.tmp_dir}/generate_df_{file_id}.py")
-        os.remove(f"{generator.tmp_dir}/data_{file_id}.{file_type}")
+        # delete temporary file
+        os.remove(script_path)
+        os.remove(dataset_path)
 
         return build_success(content, "text/csv" if file_type == "csv" else "application/json")
 

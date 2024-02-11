@@ -1,8 +1,3 @@
-"""
-@author: Yue Pan
-@file: utils.py
-@time: 2023/09/12
-"""
 from flask import Response, jsonify
 
 

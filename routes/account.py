@@ -12,7 +12,7 @@ from flask import Blueprint, request
 
 from config.generator import tmp_dir
 from database import accounts
-from utils import build_success, build_failure
+from utils.response import build_success, build_failure
 
 account_bp = Blueprint("account", __name__)
 
