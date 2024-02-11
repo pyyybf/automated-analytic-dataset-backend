@@ -39,9 +39,9 @@ def api_assignment_data():
             "_id": ObjectId(assignment_id),
         }))[0]
 
-        code = assignment["code"]
-        import_code = assignment["importCode"]
-        field_list = assignment["fieldList"]
+        code = assignment["dataset"]["code"]
+        import_code = assignment["dataset"]["importCode"]
+        field_list = assignment["dataset"]["fieldList"]
 
         # get function name
         main_func = code[code.find("def ") + 4:code.find("(")] if "def " in code else "generate_ad"
@@ -92,34 +92,38 @@ def api_assignment_data():
 def api_assignment_save():
     try:
         assignment_id = request.json["id"] or None
-        code = request.json["code"] or "def generate_ad():\n    ad = AnalyticsDataframe(1000, 6)\n    return ad"
-        import_code = request.json["importCode"] or "from analyticsdf.analyticsdataframe import AnalyticsDataframe"
         name = request.json["name"] or "Assignment"
-        number_of_rows = request.json["numberOfRows"] or 1000
-        field_list = request.json["fieldList"] or []
-        covariance_matrix = request.json["covarianceMatrix"] or {}
+        dataset = {
+            "code": request.json["dataset"][
+                        "code"] or "def generate_ad():\n    ad = AnalyticsDataframe(1000, 6)\n    return ad",
+            "importCode": request.json["dataset"][
+                              "importCode"] or "from analyticsdf.analyticsdataframe import AnalyticsDataframe",
+            "numberOfRows": request.json["dataset"]["numberOfRows"] or 1000,
+            "fieldList": request.json["dataset"]["fieldList"] or [],
+            "covarianceMatrix": request.json["dataset"]["covarianceMatrix"] or {},
+        }
+        template = {
+            "importCode": request.json["template"]["importCode"] or "",
+            "questions": request.json["template"]["questions"] or []
+        }
 
         if assignment_id:
             assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
-                "code": code,
-                "importCode": import_code,
                 "name": name,
-                "numberOfRows": number_of_rows,
-                "fieldList": field_list,
-                "covarianceMatrix": covariance_matrix,
+                "dataset": dataset,
+                "template": template,
             }})
-            return build_success(assignment_id)
         else:
-            inserted_id = assignments.insert_one({
-                "code": code,
-                "importCode": import_code,
+            assignment_id = assignments.insert_one({
                 "name": name,
-                "numberOfRows": number_of_rows,
-                "fieldList": field_list,
-                "covarianceMatrix": covariance_matrix,
+                "dataset": dataset,
+                "template": {
+                    "importCode": "",
+                    "questions": [],
+                },
                 "state": "draft",
             }).inserted_id
-            return build_success(inserted_id)
+        return build_success(assignment_id)
 
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
@@ -151,11 +155,8 @@ def api_assignment_get_all():
             assignment_list = list(assignments.find({
                 "state": "published",
             }, {
-                "code": 0,
-                "covarianceMatrix": 0,
-                "fieldList": 0,
-                "importCode": 0,
-                "numberOfRows": 0,
+                "dataset": 0,
+                "template": 0,
             }))
         return build_success(assignment_list)
 
@@ -181,7 +182,7 @@ def api_assignment_get_by_id(assignment_id):
 
 
 @assignment_bp.route("/delete/<assignment_id>", methods=["DELETE"])
-def api_account_delete_by_id(assignment_id):
+def api_assignment_delete_by_id(assignment_id):
     try:
         assignments.delete_one({"_id": ObjectId(assignment_id)})
         return build_success(assignment_id)
