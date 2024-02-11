@@ -25,8 +25,8 @@ app = Flask(__name__)
 app.json_encoder = MyEncoder
 CORS(app)
 
-app.register_blueprint(account_bp, url_prefix='/api/account')
-app.register_blueprint(assignment_bp, url_prefix='/api/assignment')
+app.register_blueprint(account_bp, url_prefix="/api/account")
+app.register_blueprint(assignment_bp, url_prefix="/api/assignment")
 
 
 @app.route("/")
