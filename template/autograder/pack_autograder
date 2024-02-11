@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+rm -f ../autograder.zip
+
+zip -r ../autograder.zip requirements.txt run_autograder run_tests.py setup.sh solution.ipynb utils.py tests

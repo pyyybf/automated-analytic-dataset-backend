@@ -4,28 +4,23 @@
 @time: 2023/09/12
 """
 import os
-import subprocess
 import uuid
+from zipfile import ZipFile
 
 from bson import ObjectId
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 
 from database import assignments
 from utils.response import build_failure, build_success
+from utils.autograder import generate_dataset_text, generate_autograder, generate_notebook
 from config.generator import tmp_dir
-
-GENERATE_CODE = {
-    # df.to_csv(f"/tmp/data_{sys.argv[1]}.csv", index=False)
-    "csv": f"df.to_csv(f\"{tmp_dir}/data_{{sys.argv[1]}}.csv\", index=False)\n",
-    # df.to_json(f"/tmp/data_{sys.argv[1]}.json", orient="records")
-    "json": f"df.to_json(f\"{tmp_dir}/data_{{sys.argv[1]}}.json\", orient=\"records\")",
-}
 
 assignment_bp = Blueprint("assignment", __name__)
 
 # mkdir when tmp directory not exists
-if not os.path.exists(tmp_dir):
-    os.mkdir(tmp_dir)
+os.makedirs(tmp_dir, exist_ok=True)
+autograder_dir = os.path.join(tmp_dir, "autograders")
+os.makedirs(autograder_dir, exist_ok=True)
 
 
 @assignment_bp.route("/data", methods=["POST"])
@@ -39,51 +34,8 @@ def api_assignment_data():
             "_id": ObjectId(assignment_id),
         }))[0]
 
-        code = assignment["dataset"]["code"]
-        import_code = assignment["dataset"]["importCode"]
-        field_list = assignment["dataset"]["fieldList"]
-
-        # get function name
-        main_func = code[code.find("def ") + 4:code.find("(")] if "def " in code else "generate_ad"
-
-        # add code to call the function
-        call_code = f"ad = {main_func}({seed})\n"
-        call_code += "df = ad.predictor_matrix\n"
-        call_code += "df[ad.response_vector_name or \"Y\"] = ad.response_vector\n"
-
-        # drop invisible columns
-        invisible_columns = []
-        for column in field_list:
-            if column["invisible"]:
-                invisible_columns.append(f'"{column["name"]}"')
-        if len(invisible_columns) > 0:
-            call_code += f"df = df.drop([{', '.join(invisible_columns)}], axis=1)\n"
-
-        # add code to generate data file: csv/json
-        call_code += GENERATE_CODE[file_type]
-
-        # generate an uuid
-        file_id = str(uuid.uuid1())
-
-        # script_path = f"{tmp_dir}/generate_df_{file_id}.py"
-        script_path = os.path.join(tmp_dir, f"generate_df_{file_id}.py")
-        with open(script_path, "w", encoding="utf-8") as target:
-            target.write(f"import sys\n{import_code}\n\n\n{code}\n\n\n{call_code}")
-
-        # run generate_df.py to generate data file in temporary file directory
-        process = subprocess.Popen(["python", script_path, file_id])
-        process.wait()
-        process.terminate()
-
-        # read data file as string
-        # dataset_path = f"{tmp_dir}/data_{file_id}.{file_type}"
-        dataset_path = os.path.join(tmp_dir, f"data_{file_id}.{file_type}")
-        with open(dataset_path, "r", encoding="utf-8") as source:
-            content = source.read()
-
-        # delete temporary file
-        os.remove(script_path)
-        os.remove(dataset_path)
+        content = generate_dataset_text(assignment["dataset"], str(uuid.uuid1()),
+                                        file_type=file_type, seed=seed, output_dir=tmp_dir)
 
         return build_success(content, "text/csv" if file_type == "csv" else "application/json")
 
@@ -190,6 +142,49 @@ def api_assignment_delete_by_id(assignment_id):
     try:
         assignments.delete_one({"_id": ObjectId(assignment_id)})
         return build_success(assignment_id)
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
+
+
+@assignment_bp.route("/autograder/<assignment_id>", methods=["GET"])
+def api_assignment_generate_autograder(assignment_id):
+    try:
+        assignment = list(assignments.find({
+            "_id": ObjectId(assignment_id),
+        }))[0]
+
+        assignment["_id"] = str(assignment["_id"])
+
+        # Generate autograder.zip, solution and student template
+        assignment_dir = os.path.join(autograder_dir, assignment_id)
+        os.makedirs(assignment_dir, exist_ok=True)
+
+        # Generate autograder.zip
+        generate_autograder(assignment,
+                            template_path=os.path.join("template", "autograder"),
+                            output_path=os.path.join(assignment_dir, "autograder"),
+                            zip_path=os.path.join(assignment_dir, "autograder.zip"))
+
+        # Generate student template notebook
+        generate_notebook(assignment["name"],
+                          assignment["template"]["importCode"],
+                          assignment["template"]["questions"],
+                          output_dir=assignment_dir)
+
+        # Return above 3 files as a zip
+        file_paths = [
+            os.path.join(assignment_dir, "autograder.zip"),
+            os.path.join(assignment_dir, "autograder", "solution.ipynb"),
+            os.path.join(assignment_dir, f"{assignment['name']}.ipynb")
+        ]
+        zip_path = os.path.join(autograder_dir, f"{assignment_id}.zip")
+        with ZipFile(zip_path, "w") as zipf:
+            for file in file_paths:
+                zipf.write(file, os.path.basename(file))
+
+        return send_file(zip_path, as_attachment=True, attachment_filename=f"{assignment['name']}.zip")
 
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
