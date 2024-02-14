@@ -148,9 +148,11 @@ def api_assignment_delete_by_id(assignment_id):
         return build_failure(str(e))
 
 
-@assignment_bp.route("/autograder/<assignment_id>", methods=["GET"])
-def api_assignment_generate_autograder(assignment_id):
+@assignment_bp.route("/autograder", methods=["POST"])
+def api_assignment_generate_autograder():
     try:
+        assignment_id = request.json["id"] or ""
+
         assignment = list(assignments.find({
             "_id": ObjectId(assignment_id),
         }))[0]
