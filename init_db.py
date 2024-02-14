@@ -91,7 +91,7 @@ assignments = [
             "covarianceMatrix": {},
         },
         "template": sample_template,
-        "state": "published",
+        "state": "Published",
     },
     {
         "name": "Assignment #2",
@@ -126,7 +126,7 @@ assignments = [
             "covarianceMatrix": {},
         },
         "template": sample_template,
-        "state": "draft",
+        "state": "Draft",
     },
     {
         "name": "Assignment #3",
@@ -138,7 +138,7 @@ assignments = [
             "covarianceMatrix": {},
         },
         "template": sample_template,
-        "state": "draft",
+        "state": "Draft",
     },
 ]
 assignments_collection.insert_many(assignments)

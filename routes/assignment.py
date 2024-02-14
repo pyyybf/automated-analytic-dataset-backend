@@ -77,7 +77,7 @@ def api_assignment_save():
                     "importCode": "",
                     "questions": [],
                 },
-                "state": "draft",
+                "state": "Draft",
             }).inserted_id
         return build_success(assignment_id)
 
@@ -89,7 +89,7 @@ def api_assignment_save():
 @assignment_bp.route("/updateState/<assignment_id>", methods=["PUT"])
 def api_assignment_update_state(assignment_id):
     try:
-        state = request.json["state"] or "draft"
+        state = request.json["state"] or "Draft"
 
         assignments.update_one({"_id": ObjectId(assignment_id)}, {"$set": {
             "state": state,
@@ -109,7 +109,7 @@ def api_assignment_get_all():
             assignment_list = list(assignments.find())
         else:
             assignment_list = list(assignments.find({
-                "state": "published",
+                "state": "Published",
             }, {
                 "dataset": 0,
                 "template": 0,
