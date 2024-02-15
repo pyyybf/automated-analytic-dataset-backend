@@ -4,6 +4,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 import json
+import re
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
@@ -44,9 +45,11 @@ def preprocess_nb(nb_path):
                             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
             elif "fetch_dataset" in metadata.keys():
                 # Read dataset => Fetch from backend
-                cell["source"] = [
-                    "df = pd.read_csv(\"dataset.csv\")"
-                ]
+                # cell["source"] = [
+                #     "df = pd.read_csv(\"dataset.csv\")"
+                # ]
+                for index, line in enumerate(cell["source"]):
+                    cell["source"][index] = re.sub(r"['\"]([^'\"]+\.csv)['\"]", "\"dataset.csv\"", line)
             elif "qid" in metadata.keys():
                 qid = metadata["qid"]
                 cell_mapping[qid] = idx
