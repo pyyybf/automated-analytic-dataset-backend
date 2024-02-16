@@ -73,10 +73,7 @@ def api_assignment_save():
             assignment_id = assignments.insert_one({
                 "name": name,
                 "dataset": dataset,
-                "template": {
-                    "importCode": "",
-                    "questions": [],
-                },
+                "template": template,
                 "state": "Draft",
             }).inserted_id
         return build_success(assignment_id)

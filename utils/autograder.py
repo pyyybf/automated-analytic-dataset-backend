@@ -89,9 +89,7 @@ def generate_notebook(assignment_name, import_code, questions, output_dir="autog
         nb.cells.append(new_code_cell([
             f"df = pd.read_csv(\"{assignment_name} - Dataset.csv\")\n",
             "df.head()"
-        ], metadata={
-            "fetch_dataset": True
-        }))
+        ], metadata={"fetch_dataset": True}))
     else:
         nb.cells.append(new_code_cell(["df = ..."], metadata={"fetch_dataset": True}))
 
@@ -112,7 +110,7 @@ def generate_notebook(assignment_name, import_code, questions, output_dir="autog
                 f"q_{qid}_{sub_qid}"
             ], metadata={
                 "qid": f"q_{qid}_{sub_qid}",
-                "output_type": sub_question["output_type"]
+                "output_type": sub_question["outputType"]
             }))
 
     # Write into jupyter notebook
@@ -139,17 +137,17 @@ def create_test_func(assignment_name, qid, sub_qid, sub_question):
         f"def test_{qid}_{sub_qid}(self):",
         f"    \"\"\"Test Question {qid}.{sub_qid}\"\"\"",
     ]
-    if sub_question["output_type"] == "number":
+    if sub_question["outputType"] == "number":
         lines.extend([
             f"    val = get_cell_output(self.nb_stu, self.cell_mapping_stu[\"q_{qid}_{sub_qid}\"])",
             f"    sol = get_cell_output(self.nb_sol, self.cell_mapping_sol[\"q_{qid}_{sub_qid}\"])",
             f"    self.assertTrue(compare_number(val, sol, {sub_question['tolerance']}))",
         ])
-    elif sub_question["output_type"] == "dataframe":
+    elif sub_question["outputType"] == "dataframe":
         lines.append(
             f"    self.assertTrue(compare_df(\"q_{qid}_{sub_qid}_{assignment_name}.csv\", \"q_{qid}_{sub_qid}_solution.csv\"))"
         )
-    elif sub_question["output_type"] == "dict":
+    elif sub_question["outputType"] == "dict":
         lines.append(
             f"    self.assertTrue(compare_dict(\"q_{qid}_{sub_qid}_{assignment_name}.json\", \"q_{qid}_{sub_qid}_solution.json\"))"
         )
@@ -234,14 +232,14 @@ if __name__ == "__main__":
                         {
                             "description": "Calculate average X1.",
                             "code": "q_1_1 = df[\"X1\"].mean()\nq_1_1",
-                            "output_type": "number",
+                            "outputType": "number",
                             "tolerance": 1,
                             "points": 20,
                         },
                         {
                             "description": "Calculate average X2.",
                             "code": "q_1_2 = df[\"X2\"].mean()\nq_1_2",
-                            "output_type": "number",
+                            "outputType": "number",
                             "tolerance": 1,
                             "points": 20,
                         },
@@ -258,7 +256,7 @@ df["Red"] = pd.get_dummies(df["X6"])["Red"].astype(int)
 df = df.drop("X6", axis=1)
 q_2_1 = df
 q_2_1""",
-                            "output_type": "dataframe",
+                            "outputType": "dataframe",
                             "points": 30,
                         },
                     ]
@@ -273,13 +271,13 @@ q_2_1""",
 model = model.fit()
 q_3_1 = model.params.to_dict()
 q_3_1""",
-                            "output_type": "dict",
+                            "outputType": "dict",
                             "points": 20,
                         },
                         {
                             "description": "Display the R-square.",
                             "code": "q_3_2 = model.rsquared\nq_3_2",
-                            "output_type": "number",
+                            "outputType": "number",
                             "tolerance": 0.001,
                             "points": 10,
                         },
