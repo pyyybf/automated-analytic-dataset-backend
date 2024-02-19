@@ -85,19 +85,23 @@ def get_cell_output(nb, index):
 
 
 # Comparing tools
-def compare_number(number1, number2, tolerance=0):
-    return np.isclose(float(number1), float(number2), atol=tolerance)
+def compare_number(val, sol, tolerance=0):
+    return np.isclose(float(val), float(sol), atol=tolerance), f"Expected: {sol}, Actual: {val}"
 
 
-def compare_df(df_path1, df_path2):
-    df1 = pd.read_csv(df_path1)
-    df2 = pd.read_csv(df_path2)
-    return df1.equals(df2)
+def compare_df(val_path, sol_path):
+    val = pd.read_csv(val_path)
+    sol = pd.read_csv(sol_path)
+    return val.equals(sol), f"Different dataframes"
 
 
-def compare_dict(dict_path1, dict_path2):
-    with open(dict_path1, "r") as fp1:
-        dict1 = json.load(fp1)
-    with open(dict_path2, "r") as fp2:
-        dict2 = json.load(fp2)
-    return dict1 == dict2
+def compare_dict(val_path, sol_path):
+    with open(val_path, "r") as fp1:
+        val = json.load(fp1)
+    with open(sol_path, "r") as fp2:
+        sol = json.load(fp2)
+    diff = []
+    for key in sol.keys():
+        if val[key] != sol[key]:
+            diff.append(f"{key}: Expected: {sol[key]}, Actual: {val[key]}")
+    return val == sol, "\n".join(diff)

@@ -141,16 +141,21 @@ def create_test_func(assignment_name, qid, sub_qid, sub_question):
         lines.extend([
             f"    val = get_cell_output(self.nb_stu, self.cell_mapping_stu[\"q_{qid}_{sub_qid}\"])",
             f"    sol = get_cell_output(self.nb_sol, self.cell_mapping_sol[\"q_{qid}_{sub_qid}\"])",
-            f"    self.assertTrue(compare_number(val, sol, {sub_question['tolerance']}))",
+            f"    flag, err_msg = compare_number(val, sol, {sub_question['tolerance']})",
+            f"    self.assertTrue(flag, f\"\\n{{err_msg}}\")",
         ])
     elif sub_question["outputType"] == "dataframe":
-        lines.append(
-            f"    self.assertTrue(compare_df(\"q_{qid}_{sub_qid}_{assignment_name}.csv\", \"q_{qid}_{sub_qid}_solution.csv\"))"
-        )
+        lines.extend([
+            f"    flag, err_msg = compare_df(\"q_{qid}_{sub_qid}_{assignment_name}.csv\", \"q_{qid}_{sub_qid}_solution.csv\")",
+            f"    self.assertTrue(flag, f\"\\n{{err_msg}}\")",
+        ])
     elif sub_question["outputType"] == "dict":
-        lines.append(
-            f"    self.assertTrue(compare_dict(\"q_{qid}_{sub_qid}_{assignment_name}.json\", \"q_{qid}_{sub_qid}_solution.json\"))"
-        )
+        lines.extend([
+            f"    flag, err_msg = compare_dict(\"q_{qid}_{sub_qid}_{assignment_name}.json\", \"q_{qid}_{sub_qid}_solution.json\")",
+            f"    self.assertTrue(flag, f\"\\n{{err_msg}}\")",
+        ])
+    else:
+        lines.append("    self.assertTrue(False, \"\\nUnknown value type\")")
     return lines
 
 
