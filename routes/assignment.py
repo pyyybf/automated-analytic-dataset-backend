@@ -10,6 +10,9 @@ from zipfile import ZipFile
 from bson import ObjectId
 from flask import Blueprint, request, send_file
 
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
+
 from database import assignments
 from utils.response import build_failure, build_success
 from utils.autograder import generate_dataset_text, generate_autograder, generate_notebook
@@ -184,6 +187,81 @@ def api_assignment_generate_autograder():
                 zipf.write(file, os.path.basename(file))
 
         return send_file(zip_path, as_attachment=True, attachment_filename=f"{assignment['name']}.zip")
+
+    except Exception as e:
+        print("Error: ", e.__class__.__name__, e)
+        return build_failure(str(e))
+
+
+@assignment_bp.route("/run", methods=["POST"])
+def api_assignment_run():
+    try:
+        assignment_id = request.json["id"] or ""
+        import_code = request.json["importCode"] or "import numpy as np\nimport pandas as pd"
+        questions = request.json["questions"] or []
+
+        assignment_dir = os.path.join(autograder_dir, assignment_id)
+        os.makedirs(assignment_dir, exist_ok=True)
+
+        # Generate tmp dataset
+        assignment = list(assignments.find({
+            "_id": ObjectId(assignment_id),
+        }))[0]
+        content = generate_dataset_text(assignment["dataset"], str(uuid.uuid1()),
+                                        file_type="csv", seed="12345", output_dir=tmp_dir)
+        dataset_path = os.path.join(assignment_dir, f"{assignment['name']} - Dataset.csv")
+        with open(dataset_path, "w") as fp:
+            fp.write(content)
+
+        # Generate tmp notebook
+        generate_notebook(assignment["name"], import_code, questions, output_dir=assignment_dir, solution=True)
+        nb_path = os.path.join(assignment_dir, "solution.ipynb")
+
+        with open(nb_path, "r") as fp:
+            nb = nbformat.read(fp, as_version=4)
+        for cell in nb["cells"]:
+            if "fetch_dataset" in cell.metadata:
+                cell.source = f"df = pd.read_csv(\"{dataset_path}\")\ndf.head()"
+        ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
+        ep.preprocess(nb)
+
+        outputs = {
+            "questions": [],
+        }
+        qid = 0
+        sub_qid = 1
+        for cell in nb["cells"]:
+            if cell.cell_type != "code":
+                continue
+
+            output_content = ""
+            for output in cell.outputs:
+                if output.output_type == "stream":
+                    output_content = output.text
+                elif output.output_type == "execute_result":
+                    output_content = output.data["text/plain"]
+                    if "text/html" in output.data:
+                        output_content = output.data["text/html"]
+
+            if isinstance(output_content, list):
+                output_content = "".join(output_content)
+
+            if "import_package" in cell.metadata:
+                outputs["importCode"] = output_content
+            elif "fetch_dataset" in cell.metadata:
+                outputs["fetchDataset"] = output_content
+            elif "qid" in cell.metadata:
+                cur_qid = int(cell.metadata["qid"].split("_")[1])
+                cur_sub_qid = int(cell.metadata["qid"].split("_")[2])
+                if cur_qid > qid:
+                    qid = cur_qid
+                    sub_qid = cur_sub_qid
+                    outputs["questions"].append([output_content])
+                elif cur_sub_qid > sub_qid:
+                    sub_qid = cur_sub_qid
+                    outputs["questions"][-1].append(output_content)
+
+        return build_success(outputs)
 
     except Exception as e:
         print("Error: ", e.__class__.__name__, e)
