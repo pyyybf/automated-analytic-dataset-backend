@@ -16,3 +16,5 @@ Requests==2.31
 packaging==21.3
 ipython==8.2.0
 ipykernel==6.9.1
+
+statsmodels
