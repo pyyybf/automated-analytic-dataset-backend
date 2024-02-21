@@ -4,6 +4,8 @@
 @time: 2023/09/12
 """
 import os
+import subprocess
+import sys
 import uuid
 from zipfile import ZipFile
 
@@ -220,14 +222,20 @@ def api_assignment_run():
         with open(nb_path, "r") as fp:
             nb = nbformat.read(fp, as_version=4)
         for cell in nb["cells"]:
-            if "fetch_dataset" in cell.metadata:
+            if "import_package" in cell.metadata:
+                for line in cell.source.split("\n"):
+                    if line.startswith("import") or line.startswith("from"):
+                        package = line.split(" ")[1].split(".")[0]
+                        try:
+                            __import__(package)
+                        except ImportError:
+                            subprocess.check_call([sys.executable, "-m", "pip3", "install", package])
+            elif "fetch_dataset" in cell.metadata:
                 cell.source = f"df = pd.read_csv(\"{dataset_path}\")\ndf.head()"
-        ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
+        ep = ExecutePreprocessor(timeout=6000, kernel_name="python3")
         ep.preprocess(nb)
 
-        outputs = {
-            "questions": [],
-        }
+        outputs = {"questions": []}
         qid = 0
         sub_qid = 1
         for cell in nb["cells"]:
