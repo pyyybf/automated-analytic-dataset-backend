@@ -229,10 +229,10 @@ def api_assignment_run():
                         try:
                             __import__(package)
                         except ImportError:
-                            subprocess.check_call([sys.executable, "-m", "pip3", "install", package])
+                            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
             elif "fetch_dataset" in cell.metadata:
                 cell.source = f"df = pd.read_csv(\"{dataset_path}\")\ndf.head()"
-        ep = ExecutePreprocessor(timeout=6000, kernel_name="python3")
+        ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
         ep.preprocess(nb)
 
         outputs = {"questions": []}
