@@ -8,6 +8,7 @@ import subprocess
 import sys
 import uuid
 import re
+import base64
 from zipfile import ZipFile
 
 from bson import ObjectId
@@ -208,6 +209,8 @@ def api_assignment_run():
 
         assignment_dir = os.path.join(autograder_dir, assignment_id)
         os.makedirs(assignment_dir, exist_ok=True)
+        plots_dir = os.path.join(assignment_dir, "plots")
+        os.makedirs(plots_dir, exist_ok=True)
 
         # Generate tmp dataset
         assignment = list(assignments.find({
@@ -219,8 +222,8 @@ def api_assignment_run():
         with open(dataset_path, "w") as fp:
             fp.write(content)
 
-        fetch_dataset_code = re.sub(r"['\"]([^'\"]+\.csv)['\"]", "\"{assignment['name']} - Dataset.csv\"",
-                                    fetch_dataset_code)
+        import_code += "\nimport matplotlib\nimport matplotlib.pyplot as plt\nmatplotlib.use('Agg')"
+        fetch_dataset_code = re.sub(r"['\"]([^'\"]+\.csv)['\"]", f"\"{dataset_path}\"", fetch_dataset_code)
 
         # Generate tmp notebook
         generate_notebook(assignment["name"], import_code, fetch_dataset_code, questions,
@@ -238,8 +241,11 @@ def api_assignment_run():
                             __import__(package)
                         except ImportError:
                             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-            elif "fetch_dataset" in cell.metadata:
-                cell.source = f"df = pd.read_csv(\"{dataset_path}\")\ndf.head()"
+            elif "output_type" in cell.metadata:
+                if cell.metadata["output_type"] == "plot":
+                    plot_path = os.path.join(plots_dir, f"{cell.metadata['qid']}.png")
+                    cell.source += f"\nplt.savefig(\"{plot_path}\")\nplt.close()"
+
         ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
         ep.preprocess(nb)
 
@@ -247,17 +253,27 @@ def api_assignment_run():
         qid = 0
         sub_qid = 1
         for cell in nb["cells"]:
-            if cell.cell_type != "code":
+            if "qid" not in cell.metadata:
                 continue
 
             output_content = ""
-            for output in cell.outputs:
-                if output.output_type == "stream":
-                    output_content = output.text
-                elif output.output_type == "execute_result":
-                    output_content = output.data["text/plain"]
-                    if "text/html" in output.data:
-                        output_content = output.data["text/html"]
+            if "output_type" in cell.metadata and cell.metadata["output_type"] != "text":
+                if cell.metadata["output_type"] == "plot":
+                    plot_path = os.path.join(plots_dir, f"{cell.metadata['qid']}.png")
+                    with open(plot_path, "rb") as f:
+                        img_data = f.read()
+                        img_base64 = base64.b64encode(img_data).decode("utf-8")
+                        output_content = f"<img src=\"data:image/png;base64,{img_base64}\"/>"
+                else:
+                    for output in cell.outputs:
+                        if output.output_type == "stream":
+                            output_content = output.text
+                        elif output.output_type == "execute_result":
+                            output_content = output.data["text/plain"]
+                            if "text/html" in output.data:
+                                output_content = output.data["text/html"]
+                        # elif output.output_type == "display_data":
+                        #     output_content = f"<img src=\"data:image/png;base64,{output.data['image/png']}\"/>"
 
             if isinstance(output_content, list):
                 output_content = "".join(output_content)

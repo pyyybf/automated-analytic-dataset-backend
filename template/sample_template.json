@@ -11,14 +11,16 @@
                     "code": "q_1_1 = df[\"X1\"].mean()\nq_1_1",
                     "outputType": "number",
                     "tolerance": 1,
-                    "points": 20
+                    "points": 20,
+                    "manual": false
                 },
                 {
                     "description": "Calculate average X2.",
                     "code": "q_1_2 = df[\"X2\"].mean()\nq_1_2",
                     "outputType": "number",
                     "tolerance": 1,
-                    "points": 20
+                    "points": 20,
+                    "manual": false
                 }
             ]
         },
@@ -30,7 +32,8 @@
                     "description": "Convert the category column X6 into binary dummy variables (1 or 0) (Have \"Yellow\" be the default value).",
                     "code": "df[\"Blue\"] = pd.get_dummies(df[\"X6\"])[\"Blue\"].astype(int)\ndf[\"Red\"] = pd.get_dummies(df[\"X6\"])[\"Red\"].astype(int)\ndf = df.drop(\"X6\", axis=1)\nq_2_1 = df\nq_2_1",
                     "outputType": "dataframe",
-                    "points": 30
+                    "points": 30,
+                    "manual": false
                 }
             ]
         },
@@ -42,14 +45,16 @@
                     "description": "Using statsmodels, perform a regression for Y using X1 through X5 and your dummy variables. Use `model.params.to_dict()` to display the params as a dict below.",
                     "code": "model = sm.OLS(df[\"Y\"], sm.add_constant(df.drop(\"Y\", 1)))\nmodel = model.fit()\nq_3_1 = model.params.to_dict()\nq_3_1",
                     "outputType": "dict",
-                    "points": 20
+                    "points": 20,
+                    "manual": false
                 },
                 {
                     "description": "Display the R-square.",
                     "code": "q_3_2 = model.rsquared\nq_3_2",
                     "outputType": "number",
                     "tolerance": 0.001,
-                    "points": 10
+                    "points": 10,
+                    "manual": false
                 }
             ]
         }

@@ -15,6 +15,7 @@ existed_requirements = [
     "packaging",
     "ipython",
     "ipykernel",
+    "sklearn",
 ]
 
 
@@ -103,14 +104,23 @@ def generate_notebook(assignment_name, import_code, fetch_dataset_code, question
             nb.cells.append(new_markdown_cell(
                 f"**Q{qid}.{sub_qid}** ({sub_question['points']} points) {sub_question['description']}"
             ))
-            # Code cell: Sub-question code / placeholder
-            nb.cells.append(new_code_cell(sub_question["code"] if solution else [
-                f"q_{qid}_{sub_qid} = ...\n",
-                f"q_{qid}_{sub_qid}"
-            ], metadata={
-                "qid": f"q_{qid}_{sub_qid}",
-                "output_type": sub_question["outputType"]
-            }))
+            if sub_question["outputType"] == "text":
+                nb.cells.append(new_markdown_cell(sub_question["code"] if solution else [""],
+                                                  metadata={
+                                                      "qid": f"q_{qid}_{sub_qid}",
+                                                      "output_type": sub_question["outputType"],
+                                                      "manual": sub_question["manual"]
+                                                  }))
+            else:
+                # Code cell: Sub-question code / placeholder
+                nb.cells.append(new_code_cell(sub_question["code"] if solution else [
+                    f"q_{qid}_{sub_qid} = ...\n",
+                    f"q_{qid}_{sub_qid}"
+                ], metadata={
+                    "qid": f"q_{qid}_{sub_qid}",
+                    "output_type": sub_question["outputType"],
+                    "manual": sub_question["manual"]
+                }))
 
     # Write into jupyter notebook
     if solution:
@@ -123,6 +133,8 @@ def generate_test_cases(assignment_name, questions):
     test_cases = []
     for qid, question in enumerate(questions, start=1):
         for sub_qid, sub_question in enumerate(question["subquestions"], start=1):
+            if sub_question["manual"]:
+                continue
             test_case = create_test_func(assignment_name, qid, sub_qid, sub_question)
             test_case = "".join([f"    {line}\n" for line in test_case])
             test_cases.append(test_case)
@@ -142,6 +154,12 @@ def create_test_func(assignment_name, qid, sub_qid, sub_question):
             f"    sol = get_cell_output(self.nb_sol, self.cell_mapping_sol[\"q_{qid}_{sub_qid}\"])",
             f"    flag, err_msg = compare_number(val, sol, {sub_question['tolerance']})",
             f"    self.assertTrue(flag, f\"\\n{{err_msg}}\")",
+        ])
+    elif sub_question["outputType"] == "string":
+        lines.extend([
+            f"    val = get_cell_output(self.nb_stu, self.cell_mapping_stu[\"q_{qid}_{sub_qid}\"])",
+            f"    sol = get_cell_output(self.nb_sol, self.cell_mapping_sol[\"q_{qid}_{sub_qid}\"])",
+            f"    self.assertEqual(val, sol)",
         ])
     elif sub_question["outputType"] == "dataframe":
         lines.extend([

@@ -36,6 +36,9 @@ def preprocess_nb(nb_path):
         if cell["cell_type"] == "code":
             metadata = cell["metadata"]
             if "import_package" in metadata.keys():
+                cell["source"][-1] += "\n"
+                cell["source"].append("import matplotlib\n")
+                cell["source"].append("matplotlib.use(\"Agg\")")
                 for line in cell["source"]:
                     if line.startswith("import") or line.startswith("from"):
                         package = line.split(" ")[1].split(".")[0]
