@@ -1,5 +1,6 @@
 {
     "importCode": "# Please import all the necessary Python packages in this cell\nimport numpy as np\nimport pandas as pd\nimport statsmodels.api as sm",
+    "fetchDatasetCode": "# Please read the dataset in this cell\ndf = pd.read_csv(\"Dataset.csv\")\ndf.head()",
     "questions": [
         {
             "title": "Statistics",

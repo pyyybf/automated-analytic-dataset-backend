@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import uuid
+import re
 from zipfile import ZipFile
 
 from bson import ObjectId
@@ -65,6 +66,7 @@ def api_assignment_save():
         }
         template = {
             "importCode": request.json["template"]["importCode"] or "",
+            "fetchDatasetCode": request.json["template"]["fetchDatasetCode"] or "",
             "questions": request.json["template"]["questions"] or []
         }
 
@@ -174,6 +176,7 @@ def api_assignment_generate_autograder():
         # Generate student template notebook
         generate_notebook(assignment["name"],
                           assignment["template"]["importCode"],
+                          assignment["template"]["fetchDatasetCode"],
                           assignment["template"]["questions"],
                           output_dir=assignment_dir)
 
@@ -200,6 +203,7 @@ def api_assignment_run():
     try:
         assignment_id = request.json["id"] or ""
         import_code = request.json["importCode"] or "import numpy as np\nimport pandas as pd"
+        fetch_dataset_code = request.json["fetchDatasetCode"] or "df = pd.read_csv(\"Dataset.csv\")\ndf.head()"
         questions = request.json["questions"] or []
 
         assignment_dir = os.path.join(autograder_dir, assignment_id)
@@ -215,8 +219,12 @@ def api_assignment_run():
         with open(dataset_path, "w") as fp:
             fp.write(content)
 
+        fetch_dataset_code = re.sub(r"['\"]([^'\"]+\.csv)['\"]", "\"{assignment['name']} - Dataset.csv\"",
+                                    fetch_dataset_code)
+
         # Generate tmp notebook
-        generate_notebook(assignment["name"], import_code, questions, output_dir=assignment_dir, solution=True)
+        generate_notebook(assignment["name"], import_code, fetch_dataset_code, questions,
+                          output_dir=assignment_dir, solution=True)
         nb_path = os.path.join(assignment_dir, "solution.ipynb")
 
         with open(nb_path, "r") as fp:

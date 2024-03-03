@@ -23,6 +23,7 @@ def generate_autograder(assignment_info, template_path="template", output_path="
     assignment_id = assignment_info["_id"]
     assignment_name = assignment_info["name"]
     import_code = assignment_info["template"]["importCode"]
+    fetch_dataset_code = assignment_info["template"]["fetchDatasetCode"]
     questions = assignment_info["template"]["questions"]
 
     # Copy templates
@@ -50,7 +51,8 @@ def generate_autograder(assignment_info, template_path="template", output_path="
         fp.write("\n".join(add_requirements))
 
     # Generate solution from questions
-    generate_notebook(assignment_name, import_code, questions, output_dir=output_path, solution=True)
+    generate_notebook(assignment_name, import_code, fetch_dataset_code, questions,
+                      output_dir=output_path, solution=True)
 
     # Generate test cases from questions
     test_case_content = generate_test_cases(assignment_name, questions)
@@ -70,7 +72,8 @@ def replace_in_file(file_path, old_s, new_s):
         fp.write(content)
 
 
-def generate_notebook(assignment_name, import_code, questions, output_dir="autograder", solution=False):
+def generate_notebook(assignment_name, import_code, fetch_dataset_code, questions,
+                      output_dir="autograder", solution=False):
     nb = new_notebook()
 
     # Title
@@ -85,13 +88,9 @@ def generate_notebook(assignment_name, import_code, questions, output_dir="autog
     nb.cells.append(new_code_cell(import_code, metadata={"import_package": True}))
 
     # Fetch dataset
-    if solution:
-        nb.cells.append(new_code_cell([
-            f"df = pd.read_csv(\"{assignment_name} - Dataset.csv\")\n",
-            "df.head()"
-        ], metadata={"fetch_dataset": True}))
-    else:
-        nb.cells.append(new_code_cell(["df = ..."], metadata={"fetch_dataset": True}))
+    fetch_dataset_code = fetch_dataset_code.split("\n")
+    fetch_dataset_code = [item + "\n" for item in fetch_dataset_code[:-1]] + fetch_dataset_code[-1:]
+    nb.cells.append(new_code_cell(fetch_dataset_code, metadata={"fetch_dataset": True}))
 
     # Start questions
     for qid, question in enumerate(questions, start=1):
@@ -300,11 +299,13 @@ q_3_1""",
     # Generate student template notebook
     generate_notebook(assignment_info["name"],
                       assignment_info["template"]["importCode"],
+                      assignment_info["template"]["fetchDatasetCode"],
                       assignment_info["template"]["questions"],
                       output_dir="../tmp/")
     # Generate solution notebook
     generate_notebook(assignment_info["name"],
                       assignment_info["template"]["importCode"],
+                      assignment_info["template"]["fetchDatasetCode"],
                       assignment_info["template"]["questions"],
                       output_dir="../tmp/",
                       solution=True)
