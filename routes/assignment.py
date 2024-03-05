@@ -175,9 +175,10 @@ def api_assignment_generate_autograder():
                             zip_path=os.path.join(assignment_dir, "autograder.zip"))
 
         # Generate student template notebook
+        fetch_dataset_tip = "# Please read the dataset in this cell\ndf = ..."
         generate_notebook(assignment["name"],
                           assignment["template"]["importCode"],
-                          assignment["template"]["fetchDatasetCode"],
+                          fetch_dataset_tip,
                           assignment["template"]["questions"],
                           output_dir=assignment_dir)
 
