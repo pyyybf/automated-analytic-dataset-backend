@@ -58,12 +58,31 @@ def preprocess_nb(nb_path):
                 cell_mapping[qid] = idx
                 if metadata["output_type"] == "dataframe":
                     # dataframe => csv
-                    cell["source"][-1] = f"{qid}.to_csv(\"{qid}_{suffix}.csv\")"
+                    # cell["source"][-1] = f"{qid}.to_csv(\"{qid}_{suffix}.csv\")"
+                    cell["source"].pop()
+                    cell["source"].extend([
+                        f"try:\n",
+                        f"    {qid}.to_csv(\"{qid}_{suffix}.csv\")\n",
+                        f"except:\n",
+                        f"    df_err = pd.DataFrame({{\"CONVERTED_ERROR\": [True]}})\n",
+                        f"    df_err.to_csv(\"{qid}_{suffix}.csv\")",
+                    ])
                 elif metadata["output_type"] == "dict":
                     # dict => json
-                    cell["source"][-1] = f"""import json
-with open("{qid}_{suffix}.json", "w") as fp:
-    json.dump({qid}, fp, indent=1)"""
+                    #                     cell["source"][-1] = f"""import json
+                    # with open("{qid}_{suffix}.json", "w") as fp:
+                    #     json.dump({qid}, fp, indent=1)"""
+                    cell["source"].pop()
+                    cell["source"].extend([
+                        f"import json\n",
+                        f"try:\n",
+                        f"    with open(\"{qid}_{suffix}.json\", \"w\") as fp:\n",
+                        f"        json.dump({qid}, fp, indent=1)\n",
+                        f"except:\n",
+                        f"    dict_err = {{\"CONVERTED_ERROR\": True}}\n",
+                        f"    with open(\"{qid}_{suffix}.json\", \"w\") as fp:\n",
+                        f"        json.dump(dict_err, fp, indent=1)",
+                    ])
 
     with open(nb_path, "w") as fp:
         json.dump(nb, fp, indent=4)
@@ -94,6 +113,8 @@ def compare_number(val, sol, tolerance=0):
 
 def compare_df(val_path, sol_path):
     val = pd.read_csv(val_path)
+    if "CONVERTED_ERROR" in val.columns:
+        return False, "Output is not a dataframe"
     sol = pd.read_csv(sol_path)
     return val.equals(sol), f"Different dataframes"
 
@@ -101,6 +122,8 @@ def compare_df(val_path, sol_path):
 def compare_dict(val_path, sol_path):
     with open(val_path, "r") as fp1:
         val = json.load(fp1)
+    if "CONVERTED_ERROR" in val:
+        return False, "Output is not a dictionary"
     with open(sol_path, "r") as fp2:
         sol = json.load(fp2)
     diff = []
