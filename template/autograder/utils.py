@@ -85,6 +85,15 @@ def preprocess_nb(nb_path):
                         f"    with open(\"{qid}_{suffix}.json\", \"w\") as fp:\n",
                         f"        json.dump(dict_err, fp, indent=1)",
                     ])
+                elif metadata["output_type"] == "list":
+                    cell["source"].pop()
+                    cell["source"].extend([
+                        f"import numpy as np\n",
+                        f"try:\n",
+                        f"    np.save(\"{qid}_{suffix}.npy\", np.array({qid}))\n",
+                        f"except:\n",
+                        f"    pass",
+                    ])
 
     with open(nb_path, "w") as fp:
         json.dump(nb, fp, indent=4)
@@ -133,3 +142,13 @@ def compare_dict(val_path, sol_path):
         if val[key] != sol[key]:
             diff.append(f"{key}: Expected: {sol[key]}, Actual: {val[key]}")
     return val == sol, "\n".join(diff)
+
+
+def compare_list(val_path, sol_path):
+    try:
+        val = np.load(val_path)
+        sol = np.load(sol_path)
+        # More logic to compare elements?
+        return np.array_equal(val, sol), "Different lists"
+    except:
+        return False, "Output is not a list"

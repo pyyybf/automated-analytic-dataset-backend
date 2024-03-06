@@ -171,6 +171,11 @@ def create_test_func(assignment_name, qid, sub_qid, sub_question):
             f"    flag, err_msg = compare_dict(\"q_{qid}_{sub_qid}_{assignment_name}.json\", \"q_{qid}_{sub_qid}_solution.json\")",
             f"    self.assertTrue(flag, f\"\\n{{err_msg}}\")",
         ])
+    elif sub_question["outputType"] == "list":
+        lines.extend([
+            f"    flag, err_msg = compare_list(\"q_{qid}_{sub_qid}_{assignment_name}.npy\", \"q_{qid}_{sub_qid}_solution.npy\")",
+            f"    self.assertTrue(flag, f\"\\n{{err_msg}}\")",
+        ])
     else:
         lines.append("    self.assertTrue(False, \"\\nUnknown value type\")")
     return lines

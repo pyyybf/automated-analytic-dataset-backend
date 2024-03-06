@@ -2,7 +2,7 @@ import json
 import unittest
 from gradescope_utils.autograder_utils.decorators import weight, number
 
-from utils import fetch_dataset, preprocess_nb, execute_nb, get_cell_output, compare_number, compare_df, compare_dict
+from utils import *
 
 
 class TestDemo(unittest.TestCase):
