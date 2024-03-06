@@ -8,6 +8,8 @@ import re
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
+CONVERTED_ERROR = "CONVERTED_ERROR"
+
 
 def fetch_dataset(assignment_id, usc_id, output_path="dataset.csv"):
     url = "https://backend-dot-automated-dataset-generation.wl.r.appspot.com/api/assignment/data"
@@ -64,7 +66,7 @@ def preprocess_nb(nb_path):
                         f"try:\n",
                         f"    {qid}.to_csv(\"{qid}_{suffix}.csv\")\n",
                         f"except:\n",
-                        f"    df_err = pd.DataFrame({{\"CONVERTED_ERROR\": [True]}})\n",
+                        f"    df_err = pd.DataFrame({{\"{CONVERTED_ERROR}\": [True]}})\n",
                         f"    df_err.to_csv(\"{qid}_{suffix}.csv\")",
                     ])
                 elif metadata["output_type"] == "dict":
@@ -79,7 +81,7 @@ def preprocess_nb(nb_path):
                         f"    with open(\"{qid}_{suffix}.json\", \"w\") as fp:\n",
                         f"        json.dump({qid}, fp, indent=1)\n",
                         f"except:\n",
-                        f"    dict_err = {{\"CONVERTED_ERROR\": True}}\n",
+                        f"    dict_err = {{\"{CONVERTED_ERROR}\": True}}\n",
                         f"    with open(\"{qid}_{suffix}.json\", \"w\") as fp:\n",
                         f"        json.dump(dict_err, fp, indent=1)",
                     ])
@@ -113,7 +115,7 @@ def compare_number(val, sol, tolerance=0):
 
 def compare_df(val_path, sol_path):
     val = pd.read_csv(val_path)
-    if "CONVERTED_ERROR" in val.columns:
+    if CONVERTED_ERROR in val.columns:
         return False, "Output is not a dataframe"
     sol = pd.read_csv(sol_path)
     return val.equals(sol), f"Different dataframes"
@@ -122,7 +124,7 @@ def compare_df(val_path, sol_path):
 def compare_dict(val_path, sol_path):
     with open(val_path, "r") as fp1:
         val = json.load(fp1)
-    if "CONVERTED_ERROR" in val:
+    if CONVERTED_ERROR in val:
         return False, "Output is not a dictionary"
     with open(sol_path, "r") as fp2:
         sol = json.load(fp2)
