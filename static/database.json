@@ -1,0 +1,1097 @@
+{
+  "assignments": [
+    {
+      "name": "Assignment #2",
+      "dataset": {
+        "code": "def generate_ad(seed=None):\n    ad = AnalyticsDataframe(1000, 2, [\"ca\", \"ca_weight\"], \"Y\", seed=seed)\n    \n    ad.update_predictor_categorical(\"ca\", [\"aaa\", \"bbb\"], [0.25, 0.75])\n    \n    # create a new predictor column, change categorical value into numerical value\n    categorical_mapping_ca = {\"aaa\": 1, \"bbb\": 0}\n    ad.predictor_matrix[\"ca_weight\"] = ad.predictor_matrix.replace({\"ca\": categorical_mapping_ca}, inplace=False)[\"ca\"]\n    \n    predictor_name_list = [\"ca_weight\"]\n    beta = [7, 12]\n    eps_var = 0\n    ad.generate_response_vector_linear(predictor_name_list=predictor_name_list, beta=beta, epsilon_variance=eps_var)\n    ad.response_vector = np.exp(0.02 * ad.response_vector)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe\nimport numpy as np",
+        "numberOfRows": 1000,
+        "fieldList": [
+          {
+            "type": "CATEGORICAL",
+            "name": "ca",
+            "categoryList": [
+              {
+                "name": "aaa",
+                "prob": 1
+              },
+              {
+                "name": "bbb",
+                "prob": "3"
+              }
+            ],
+            "invisible": false
+          },
+          {
+            "type": "CATEGORICAL_TO_NUMERICAL",
+            "name": "ca_weight",
+            "target": "ca",
+            "categoricalMapping": {
+              "aaa": "1",
+              "bbb": 0
+            },
+            "inplace": false,
+            "invisible": false
+          },
+          {
+            "type": "RESPONSE_VECTOR_LINEAR",
+            "name": "Y",
+            "predictorList": {
+              "ca_weight": {
+                "checked": true,
+                "beta": "12"
+              }
+            },
+            "intercept": "7",
+            "epsilonVariance": 0,
+            "exponent": "0.02",
+            "invisible": false
+          }
+        ],
+        "covarianceMatrix": {}
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport numpy as np\nimport pandas as pd\nimport statsmodels.api as sm",
+        "fetchDatasetCode": "# Please read the dataset in this cell\ndf = pd.read_csv(\"Dataset.csv\")\ndf.head()",
+        "questions": [
+          {
+            "title": "Statistics",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Calculate average X1.",
+                "code": "q_1_1 = df[\"X1\"].mean()\nq_1_1",
+                "outputType": "number",
+                "tolerance": 1,
+                "points": 20
+              },
+              {
+                "description": "Calculate average X2.",
+                "code": "q_1_2 = df[\"X2\"].mean()\nq_1_2",
+                "outputType": "number",
+                "tolerance": 1,
+                "points": 20
+              }
+            ]
+          },
+          {
+            "title": "One-Hot Encoding",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Convert the category column X6 into binary dummy variables (1 or 0) (Have \"Yellow\" be the default value).",
+                "code": "df[\"Blue\"] = pd.get_dummies(df[\"X6\"])[\"Blue\"].astype(int)\ndf[\"Red\"] = pd.get_dummies(df[\"X6\"])[\"Red\"].astype(int)\ndf = df.drop(\"X6\", axis=1)\nq_2_1 = df\nq_2_1",
+                "outputType": "dataframe",
+                "points": 30
+              }
+            ]
+          },
+          {
+            "title": "StatsModels",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Using statsmodels, perform a regression for Y using X1 through X5 and your dummy variables. Use `model.params.to_dict()` to display the params as a dict below.",
+                "code": "model = sm.OLS(df[\"Y\"], sm.add_constant(df.drop(\"Y\", 1)))\nmodel = model.fit()\nq_3_1 = model.params.to_dict()\nq_3_1",
+                "outputType": "dict",
+                "points": 20
+              },
+              {
+                "description": "Display the R-square.",
+                "code": "q_3_2 = model.rsquared\nq_3_2",
+                "outputType": "number",
+                "tolerance": 0.001,
+                "points": 10
+              }
+            ]
+          }
+        ]
+      },
+      "state": "Draft"
+    },
+    {
+      "name": "Module 4 Homework",
+      "dataset": {
+        "code": "def generate_ad(seed=None):\n    ad = AnalyticsDataframe(1000, 1, [\"uni\"], \"Y\", seed=seed)\n    \n    ad.update_predictor_uniform(\"uni\", 0, 1)\n    \n    predictor_name_list = [\"uni\"]\n    beta = [0, 0]\n    eps_var = 0\n    ad.generate_response_vector_linear(predictor_name_list=predictor_name_list, beta=beta, epsilon_variance=eps_var)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe",
+        "numberOfRows": 1000,
+        "fieldList": [
+          {
+            "type": "UNIFORM",
+            "name": "uni",
+            "lowerBound": 0,
+            "upperBound": 1,
+            "invisible": false
+          },
+          {
+            "type": "RESPONSE_VECTOR_LINEAR",
+            "name": "Y",
+            "predictorList": {
+              "uni": {
+                "checked": true
+              }
+            },
+            "intercept": 0,
+            "epsilonVariance": 0,
+            "exponent": "",
+            "invisible": false
+          }
+        ],
+        "covarianceMatrix": {}
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport numpy as np\nimport pandas as pd\nimport statsmodels.api as sm",
+        "fetchDatasetCode": "# Please read the dataset in this cell\ndf = pd.read_csv(\"Dataset.csv\")\ndf.head()",
+        "questions": [
+          {
+            "title": "Statistics",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Calculate average X1.",
+                "code": "q_1_1 = df[\"X1\"].mean()\nq_1_1",
+                "outputType": "number",
+                "tolerance": 1,
+                "points": 20
+              },
+              {
+                "description": "Calculate average X2.",
+                "code": "q_1_2 = df[\"X2\"].mean()\nq_1_2",
+                "outputType": "number",
+                "tolerance": 1,
+                "points": 20
+              }
+            ]
+          },
+          {
+            "title": "One-Hot Encoding",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Convert the category column X6 into binary dummy variables (1 or 0) (Have \"Yellow\" be the default value).",
+                "code": "df[\"Blue\"] = pd.get_dummies(df[\"X6\"])[\"Blue\"].astype(int)\ndf[\"Red\"] = pd.get_dummies(df[\"X6\"])[\"Red\"].astype(int)\ndf = df.drop(\"X6\", axis=1)\nq_2_1 = df\nq_2_1",
+                "outputType": "dataframe",
+                "points": 30
+              }
+            ]
+          },
+          {
+            "title": "StatsModels",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Using statsmodels, perform a regression for Y using X1 through X5 and your dummy variables. Use `model.params.to_dict()` to display the params as a dict below.",
+                "code": "model = sm.OLS(df[\"Y\"], sm.add_constant(df.drop(\"Y\", 1)))\nmodel = model.fit()\nq_3_1 = model.params.to_dict()\nq_3_1",
+                "outputType": "dict",
+                "points": 20
+              },
+              {
+                "description": "Display the R-square.",
+                "code": "q_3_2 = model.rsquared\nq_3_2",
+                "outputType": "number",
+                "tolerance": 0.001,
+                "points": 10
+              }
+            ]
+          }
+        ]
+      },
+      "state": "Draft"
+    },
+    {
+      "name": "Assignment #3",
+      "dataset": {
+        "code": "def generate_ad():\n    ad = AnalyticsDataframe(1000, 6)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe",
+        "numberOfRows": 1000,
+        "fieldList": [],
+        "covarianceMatrix": {}
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport numpy as np\nimport pandas as pd\nimport statsmodels.api as sm",
+        "fetchDatasetCode": "# Please read the dataset in this cell\ndf = pd.read_csv(\"Dataset.csv\")\ndf.head()",
+        "questions": [
+          {
+            "title": "Statistics",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Calculate average X1.",
+                "code": "q_1_1 = df[\"X1\"].mean()\nq_1_1",
+                "outputType": "number",
+                "tolerance": 1,
+                "points": 20
+              },
+              {
+                "description": "Calculate average X2.",
+                "code": "q_1_2 = df[\"X2\"].mean()\nq_1_2",
+                "outputType": "number",
+                "tolerance": 1,
+                "points": 20
+              }
+            ]
+          },
+          {
+            "title": "One-Hot Encoding",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Convert the category column X6 into binary dummy variables (1 or 0) (Have \"Yellow\" be the default value).",
+                "code": "df[\"Blue\"] = pd.get_dummies(df[\"X6\"])[\"Blue\"].astype(int)\ndf[\"Red\"] = pd.get_dummies(df[\"X6\"])[\"Red\"].astype(int)\ndf = df.drop(\"X6\", axis=1)\nq_2_1 = df\nq_2_1",
+                "outputType": "dataframe",
+                "points": 30
+              }
+            ]
+          },
+          {
+            "title": "StatsModels",
+            "description": "",
+            "subquestions": [
+              {
+                "description": "Using statsmodels, perform a regression for Y using X1 through X5 and your dummy variables. Use `model.params.to_dict()` to display the params as a dict below.",
+                "code": "model = sm.OLS(df[\"Y\"], sm.add_constant(df.drop(\"Y\", 1)))\nmodel = model.fit()\nq_3_1 = model.params.to_dict()\nq_3_1",
+                "outputType": "dict",
+                "points": 20
+              },
+              {
+                "description": "Display the R-square.",
+                "code": "q_3_2 = model.rsquared\nq_3_2",
+                "outputType": "number",
+                "tolerance": 0.001,
+                "points": 10
+              }
+            ]
+          }
+        ]
+      },
+      "state": "Draft"
+    },
+    {
+      "name": "Autograding Test 1",
+      "dataset": {
+        "code": "def generate_ad(seed=None):\n    ad = AnalyticsDataframe(1000, 7, [\"X1\", \"X2\", \"X3\", \"X4\", \"X5\", \"X6\", \"X6_weight\"], \"Y\", seed=seed)\n    \n    ad.update_predictor_uniform(\"X1\", 0, 100)\n    ad.update_predictor_uniform(\"X2\", 0, 100)\n    ad.update_predictor_uniform(\"X3\", 0, 100)\n    ad.update_predictor_uniform(\"X4\", 0, 100)\n    ad.update_predictor_uniform(\"X5\", 0, 100)\n    ad.update_predictor_categorical(\"X6\", [\"Blue\", \"Yellow\", \"Red\"], [0.3, 0.4, 0.3])\n    \n    # create a new predictor column, change categorical value into numerical value\n    categorical_mapping_X6 = {\"Blue\": 1, \"Yellow\": 0, \"Red\": -2}\n    ad.predictor_matrix[\"X6_weight\"] = ad.predictor_matrix.replace({\"X6\": categorical_mapping_X6},\n                                                                   inplace=False)[\"X6\"]\n    \n    predictor_name_list = [\"X1\", \"X2\", \"X4\", \"X6_weight\"]\n    polynomial_order = [1, 1, 1, 1]\n    beta = [0, 15, -30, 5, 1000]\n    int_matrix = np.array([[0, 0, 0, 0],\n                           [0, 2, 0, 0],\n                           [0, 0, 0, 0],\n                           [0, 0, 0, 0]])\n    eps_var = 2000\n    ad.generate_response_vector_polynomial(predictor_name_list=predictor_name_list,\n                                           polynomial_order=polynomial_order,\n                                           beta=beta,\n                                           interaction_term_betas=int_matrix,\n                                           epsilon_variance=eps_var)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe\nimport numpy as np",
+        "numberOfRows": 1000,
+        "fieldList": [
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X1",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X2",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X3",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X4",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X5",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "categoryList": [
+              {
+                "name": "Blue",
+                "prob": "3"
+              },
+              {
+                "name": "Yellow",
+                "prob": "4"
+              },
+              {
+                "name": "Red",
+                "prob": "3"
+              }
+            ],
+            "invisible": false,
+            "name": "X6",
+            "type": "CATEGORICAL"
+          },
+          {
+            "categoricalMapping": {
+              "Blue": "1",
+              "Red": "-2",
+              "Yellow": 0
+            },
+            "inplace": false,
+            "invisible": true,
+            "name": "X6_weight",
+            "target": "X6",
+            "type": "CATEGORICAL_TO_NUMERICAL"
+          },
+          {
+            "epsilonVariance": "2000",
+            "exponent": "",
+            "interactionTermBetas": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                "2",
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "intercept": 0,
+            "invisible": false,
+            "name": "Y",
+            "predictorList": {
+              "X1": {
+                "beta": "15",
+                "checked": true
+              },
+              "X2": {
+                "beta": "-30",
+                "checked": true
+              },
+              "X4": {
+                "beta": "5",
+                "checked": true
+              },
+              "X6_weight": {
+                "beta": "1000",
+                "checked": true
+              }
+            },
+            "type": "RESPONSE_VECTOR_POLYNOMIAL"
+          }
+        ],
+        "covarianceMatrix": {}
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport numpy as np\nimport pandas as pd\nimport seaborn as sns\nimport statsmodels.api as sm\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn import metrics",
+        "fetchDatasetCode": "# Please read the dataset in this cell\nprob_1_dataset = pd.read_csv('Autograding Test 1 - Dataset.csv')\nprob_1_dataset.head()",
+        "questions": [
+          {
+            "description": "Read the file \"Autograding Test 1 - Dataset.csv\" into a dataframe and convert the category column X6 into binary dummary variables (Have \"Yellow\" be the default value).",
+            "subquestions": [
+              {
+                "code": "prob_1_dataset['Blue'] = pd.get_dummies(prob_1_dataset['X6'])['Blue'].astype(int)\nprob_1_dataset['Red'] = pd.get_dummies(prob_1_dataset['X6'])['Red'].astype(int)\nprob_1_dataset = prob_1_dataset.drop('X6', axis=1)\nprob_1_dataset = prob_1_dataset[['X1', 'X2', 'X3', 'X4', 'X5', 'Blue', 'Red', 'Y']]\nq_1_1 = prob_1_dataset.head(10)\nq_1_1",
+                "description": "Display the first ten rows of the resulting dataset.",
+                "manual": false,
+                "outputType": "dataframe",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "model_1 = sm.OLS(prob_1_dataset['Y'], sm.add_constant(prob_1_dataset.drop('Y', axis=1)))\nq_1_2 = model_1.fit().params.to_dict()\nq_1_2",
+                "description": "Using statsmodels, perform a regression for Y using X1 through X5 and your dummy variables display the fit summary below.",
+                "manual": false,
+                "outputType": "dict",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "Variables X3 and X5 do not appear to have a relationship to the response variable.",
+                "description": "Investigating the resulting coefficient p-values, Which predictors appear to not have a statistically significant relationship to the response variable?",
+                "manual": true,
+                "outputType": "text",
+                "points": 5,
+                "tolerance": 0
+              }
+            ],
+            "title": "Problem 1"
+          },
+          {
+            "description": "",
+            "subquestions": [
+              {
+                "code": "prob_1_dataset_2 = prob_1_dataset.drop(['X3', 'X5'], axis=1)\nq_2_1 = prob_1_dataset_2.head(10)\nq_2_1",
+                "description": "Drop any predictors that you found not to have a relationship with the response and display the first 10 rows of the resulting dataframe.",
+                "manual": false,
+                "outputType": "dataframe",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "X = prob_1_dataset_2.drop([\"Y\"], axis=1)\ny = prob_1_dataset_2['Y']\nmodel_2 = sm.OLS(y, sm.add_constant(X))\nq_2_2 = model_2.fit().params.to_dict()\nq_2_2",
+                "description": "Re-run the regression without the irrelevant variables and display the fit summary",
+                "manual": false,
+                "outputType": "dict",
+                "points": 5,
+                "tolerance": 0
+              }
+            ],
+            "title": "Problem 2"
+          },
+          {
+            "description": "",
+            "subquestions": [
+              {
+                "code": "$Y = -3472.3 + 13.6*X1 + 171.9*X2 + 6.3*X4 + 1076.3*Blue - 2082.1*Red$",
+                "description": "Write the full regression equation",
+                "manual": true,
+                "outputType": "text",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "$Y = -3472.3 + 13.6*X1 + 171.9*X2 + 6.3*X4$",
+                "description": "Write the equation for the observations where the \"color\" category is yellow:",
+                "manual": true,
+                "outputType": "text",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "$Y = -3472.3 + 13.6*X1 + 171.9*X2 + 6.3*X4 + 1076.3$\n\n$Y = -2396 + 13.6*X1 + 171.9*X2 + 6.3*X4$",
+                "description": "Write the equation for the observations where the \"color\" category is blue:",
+                "manual": true,
+                "outputType": "text",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "$Y = -3472.3 + 13.6*X1 + 171.9*X2 + 6.3*X4 - 2082.1$\n\n$Y = -5554.4 + 13.6*X1 + 171.9*X2 + 6.3*X4$",
+                "description": "Write the equation for the observations where the \"color\" category is red:",
+                "manual": true,
+                "outputType": "text",
+                "points": 5,
+                "tolerance": 0
+              }
+            ],
+            "title": "Equations"
+          },
+          {
+            "description": "",
+            "subquestions": [
+              {
+                "code": "model_3 = LinearRegression(fit_intercept = True)\nX = prob_1_dataset_2.drop([\"Y\"], axis=1)\ny = prob_1_dataset_2['Y']\nmodel_3.fit(X,y)\nq_4_1 = model_3.coef_\nq_4_1",
+                "description": "Now, use the sklearn library to run the same regression and display the resulting model coefficients",
+                "manual": false,
+                "outputType": "list",
+                "points": 10,
+                "tolerance": 0
+              },
+              {
+                "code": "y_hat = model_3.predict(X)\nq_4_2 = metrics.r2_score(y,y_hat)\nq_4_2",
+                "description": "Calculate and display the  $R^2$",
+                "manual": false,
+                "outputType": "number",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "q_4_3 = metrics.mean_squared_error(y,y_hat)\nq_4_3",
+                "description": "Calculate and display the following fit assessment statistics: Mean Squared Error",
+                "manual": false,
+                "outputType": "number",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "q_4_4 = metrics.mean_absolute_error(y,y_hat)\nq_4_4",
+                "description": "Calculate and display the following fit assessment statistics: Mean Absolute Error",
+                "manual": false,
+                "outputType": "number",
+                "points": 5,
+                "tolerance": 0
+              },
+              {
+                "code": "q_4_5 = metrics.max_error(y,y_hat)\nq_4_5",
+                "description": "Calculate and display the following fit assessment statistics: Max Error",
+                "manual": false,
+                "outputType": "number",
+                "points": 5,
+                "tolerance": 0
+              }
+            ],
+            "title": "Sklearn"
+          },
+          {
+            "description": "",
+            "subquestions": [
+              {
+                "code": "sns.scatterplot(x=y, y=y_hat)",
+                "description": "Using Seaborn, create a scatterplot of the actual values of Y vs the predicted values of Y",
+                "manual": true,
+                "outputType": "plot",
+                "points": 10,
+                "tolerance": 0
+              },
+              {
+                "code": "sns.scatterplot(x = X['X1'] , y=y), sns.scatterplot(x = X['X2'] , y=y), sns.scatterplot(x = X['X4'] , y=y)",
+                "description": "Now, create one scatterplot for each numeric predictor (not including dummy variables) against the response variables:",
+                "manual": true,
+                "outputType": "plot",
+                "points": 10,
+                "tolerance": 0
+              },
+              {
+                "code": "X2",
+                "description": "Which predictor or predictors appear to have a nonlinear relationship with the response variable?",
+                "manual": true,
+                "outputType": "text",
+                "points": 5,
+                "tolerance": 0
+              }
+            ],
+            "title": "Plots"
+          }
+        ]
+      },
+      "state": "Draft"
+    },
+    {
+      "name": "New funcs",
+      "dataset": {
+        "code": "def generate_ad(seed=None):\n    ad = AnalyticsDataframe(100, 7, [\"name1\", \"g1 Street\", \"g1 City\", \"g1 State\", \"g1 Zip\", \"Date\", \"u\"], \"Y\", seed=seed)\n    \n    ad.update_predictor_person_name(predictor_name=\"name1\")\n    ad.update_predictor_address(street_predictor_name=\"g1 Street\",\n                                city_predictor_name=\"g1 City\",\n                                state_predictor_name=\"g1 State\",\n                                zip_predictor_name=\"g1 Zip\")\n    ad.update_predictor_date(predictor_name=\"Date\",\n                             from_date=datetime(2024, 3, 28),\n                             to_date=datetime(2024, 3, 30))\n    ad.update_predictor_uniform(\"u\", 0, 1)\n    \n    predictor_name_list = [\"u\"]\n    beta = [0, 1]\n    eps_var = 0\n    ad.generate_response_vector_linear(predictor_name_list=predictor_name_list,\n                                       beta=beta,\n                                       epsilon_variance=eps_var)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe\nfrom datetime import datetime",
+        "numberOfRows": "100",
+        "fieldList": [
+          {
+            "type": "NAME",
+            "name": "name1",
+            "nameType": "Person",
+            "invisible": false
+          },
+          {
+            "type": "ADDRESS",
+            "name": "g1",
+            "street": "g1 Street",
+            "city": "g1 City",
+            "state": "g1 State",
+            "zip": "g1 Zip",
+            "invisible": false
+          },
+          {
+            "type": "DATE",
+            "name": "Date",
+            "fromDate": [
+              2024,
+              3,
+              28
+            ],
+            "toDate": [
+              2024,
+              3,
+              30
+            ],
+            "invisible": false
+          },
+          {
+            "type": "UNIFORM",
+            "name": "u",
+            "lowerBound": 0,
+            "upperBound": 1,
+            "invisible": false
+          },
+          {
+            "type": "RESPONSE_VECTOR_LINEAR",
+            "name": "Y",
+            "predictorList": {
+              "u": {
+                "checked": true,
+                "beta": "1"
+              }
+            },
+            "intercept": 0,
+            "epsilonVariance": 0,
+            "exponent": "",
+            "invisible": false
+          }
+        ],
+        "covarianceMatrix": {}
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport pandas as pd",
+        "fetchDatasetCode": "# Please read the dataset in this cell\ndf = pd.read_csv(\"Dataset.csv\")\ndf.head()",
+        "questions": [
+          {
+            "description": "",
+            "subquestions": [
+              {
+                "code": "q_1_1 = ...\nq_1_1",
+                "description": "",
+                "outputType": "number",
+                "points": 10,
+                "tolerance": 0
+              }
+            ],
+            "title": ""
+          }
+        ]
+      },
+      "state": "Draft"
+    },
+    {
+      "name": "Assignment - test",
+      "dataset": {
+        "code": "def generate_ad(seed=None):\n    ad = AnalyticsDataframe(1000, 5, [\"name\", \"Date\", \"amount\", \"product_margin\", \"product\"], \"Y\", seed=seed)\n    \n    ad.update_predictor_person_name(predictor_name=\"name\")\n    ad.update_predictor_date(predictor_name=\"Date\",\n                             from_date=datetime(2023, 1, 1),\n                             to_date=datetime(2023, 12, 31))\n    covariance_matrix = np.array([[10]])\n    ad.update_predictor_normal(predictor_name_list=[\"amount\"],\n                               mean=[100],\n                               covariance_matrix=covariance_matrix)\n    ad.update_predictor_uniform(\"product_margin\", 10, 20)\n    ad.update_predictor_categorical(\"product\", [\"x\", \"y\", \"z\"], [0.2, 0.4, 0.4])\n    \n    predictor_name_list = [\"amount\", \"product_margin\"]\n    beta = [0, 1, 1]\n    eps_var = 5\n    ad.generate_response_vector_linear(predictor_name_list=predictor_name_list,\n                                       beta=beta,\n                                       epsilon_variance=eps_var)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe\nfrom datetime import datetime\nimport numpy as np",
+        "numberOfRows": 1000,
+        "fieldList": [
+          {
+            "invisible": false,
+            "name": "name",
+            "nameType": "Person",
+            "type": "NAME"
+          },
+          {
+            "fromDate": [
+              2023,
+              1,
+              1
+            ],
+            "invisible": false,
+            "name": "Date",
+            "toDate": [
+              2023,
+              12,
+              31
+            ],
+            "type": "DATE"
+          },
+          {
+            "groupNum": 1,
+            "index": 0,
+            "invisible": false,
+            "mean": "100",
+            "name": "amount",
+            "type": "MULTIVARIATE_NORMAL"
+          },
+          {
+            "invisible": false,
+            "lowerBound": "10",
+            "name": "product_margin",
+            "type": "UNIFORM",
+            "upperBound": "20"
+          },
+          {
+            "categoryList": [
+              {
+                "name": "x",
+                "prob": "20"
+              },
+              {
+                "name": "y",
+                "prob": "40"
+              },
+              {
+                "name": "z",
+                "prob": "40"
+              }
+            ],
+            "invisible": false,
+            "name": "product",
+            "type": "CATEGORICAL"
+          },
+          {
+            "epsilonVariance": "5",
+            "exponent": "",
+            "intercept": 0,
+            "invisible": false,
+            "name": "Y",
+            "predictorList": {
+              "amount": {
+                "beta": "1",
+                "checked": true
+              },
+              "product_margin": {
+                "beta": "1",
+                "checked": true
+              }
+            },
+            "type": "RESPONSE_VECTOR_LINEAR"
+          }
+        ],
+        "covarianceMatrix": {
+          "GROUP_1": [
+            [
+              "10"
+            ]
+          ]
+        }
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport pandas as pd",
+        "fetchDatasetCode": "# Please read the dataset in this cell\ndf = pd.read_csv(\"Assignment - test - Dataset.csv\")\ndf.head()",
+        "questions": [
+          {
+            "description": "",
+            "subquestions": [
+              {
+                "code": "q_1_1 = df[\"Y\"].sum()\nq_1_1",
+                "description": "calculate the total profit",
+                "manual": false,
+                "outputType": "number",
+                "points": 10,
+                "tolerance": 0
+              }
+            ],
+            "title": ""
+          }
+        ]
+      },
+      "state": "Draft"
+    },
+    {
+      "name": "Module 2B Homework",
+      "dataset": {
+        "code": "def generate_ad(seed=None):\n    ad = AnalyticsDataframe(1000, 8, [\"X1\", \"X2\", \"X3\", \"X4\", \"X5\", \"X6\", \"X6_Blue\", \"X6_Red\"], \"Y\", seed=seed)\n    \n    ad.update_predictor_uniform(\"X1\", 0, 100)\n    ad.update_predictor_uniform(\"X2\", 0, 100)\n    ad.update_predictor_uniform(\"X3\", 0, 100)\n    ad.update_predictor_uniform(\"X4\", 0, 100)\n    ad.update_predictor_uniform(\"X5\", 0, 100)\n    ad.update_predictor_categorical(\"X6\", [\"Blue\", \"Yellow\", \"Red\"], [0.3, 0.4, 0.3])\n    \n    # create a new predictor column, change categorical value into numerical value\n    categorical_mapping_X6 = {\"Blue\": 1, \"Red\": 0, \"Yellow\": 0}\n    ad.predictor_matrix[\"X6_Blue\"] = ad.predictor_matrix.replace({\"X6\": categorical_mapping_X6},\n                                                                 inplace=False)[\"X6\"]\n    \n    # create a new predictor column, change categorical value into numerical value\n    categorical_mapping_X6 = {\"Blue\": 0, \"Red\": 1, \"Yellow\": 0}\n    ad.predictor_matrix[\"X6_Red\"] = ad.predictor_matrix.replace({\"X6\": categorical_mapping_X6},\n                                                                inplace=False)[\"X6\"]\n    \n    predictor_name_list = [\"X1\", \"X2\", \"X4\", \"X6_Blue\", \"X6_Red\"]\n    polynomial_order = [1, 2, 1, 1, 1]\n    beta = [0, 15, -30, 2, 5, 1000, -2000]\n    int_matrix = np.array([[0, 0, 0, 0, 0, 0],\n                           [0, 0, 0, 0, 0, 0],\n                           [0, 0, 0, 0, 0, 0],\n                           [0, 0, 0, 0, 0, 0],\n                           [0, 0, 0, 0, 0, 0],\n                           [0, 0, 0, 0, 0, 0]])\n    eps_var = 2000\n    ad.generate_response_vector_polynomial(predictor_name_list=predictor_name_list,\n                                           polynomial_order=polynomial_order,\n                                           beta=beta,\n                                           interaction_term_betas=int_matrix,\n                                           epsilon_variance=eps_var)\n    return ad",
+        "importCode": "from analyticsdf.analyticsdataframe import AnalyticsDataframe\nimport numpy as np",
+        "numberOfRows": "1000",
+        "fieldList": [
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X1",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X2",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X3",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X4",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "invisible": false,
+            "lowerBound": 0,
+            "name": "X5",
+            "type": "UNIFORM",
+            "upperBound": "100"
+          },
+          {
+            "categoryList": [
+              {
+                "name": "Blue",
+                "prob": "0.3"
+              },
+              {
+                "name": "Yellow",
+                "prob": "0.4"
+              },
+              {
+                "name": "Red",
+                "prob": "0.3"
+              }
+            ],
+            "invisible": false,
+            "name": "X6",
+            "type": "CATEGORICAL"
+          },
+          {
+            "categoricalMapping": {
+              "Blue": "1",
+              "Red": 0,
+              "Yellow": 0
+            },
+            "inplace": false,
+            "invisible": true,
+            "name": "X6_Blue",
+            "target": "X6",
+            "type": "CATEGORICAL_TO_NUMERICAL"
+          },
+          {
+            "categoricalMapping": {
+              "Blue": 0,
+              "Red": "1",
+              "Yellow": 0
+            },
+            "inplace": false,
+            "invisible": true,
+            "name": "X6_Red",
+            "target": "X6",
+            "type": "CATEGORICAL_TO_NUMERICAL"
+          },
+          {
+            "epsilonVariance": "2000",
+            "exponent": "",
+            "interactionTermBetas": [
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "intercept": 0,
+            "invisible": false,
+            "name": "Y",
+            "predictorList": {
+              "X1": {
+                "beta": [
+                  "15",
+                  "",
+                  "",
+                  ""
+                ],
+                "checked": true,
+                "polynomialOrder": 1
+              },
+              "X2": {
+                "beta": [
+                  "-30",
+                  "2",
+                  "",
+                  ""
+                ],
+                "checked": true,
+                "polynomialOrder": 2
+              },
+              "X4": {
+                "beta": [
+                  "5",
+                  "",
+                  "",
+                  ""
+                ],
+                "checked": true,
+                "polynomialOrder": 1
+              },
+              "X6_Blue": {
+                "beta": [
+                  "1000",
+                  "",
+                  "",
+                  ""
+                ],
+                "checked": true,
+                "polynomialOrder": 1
+              },
+              "X6_Red": {
+                "beta": [
+                  "-2000",
+                  "",
+                  "",
+                  ""
+                ],
+                "checked": true,
+                "polynomialOrder": 1
+              }
+            },
+            "type": "RESPONSE_VECTOR_POLYNOMIAL"
+          }
+        ],
+        "covarianceMatrix": {}
+      },
+      "template": {
+        "importCode": "# Please import all the necessary Python packages in this cell\nimport pandas as pd\nimport numpy as np\nimport statsmodels.api as sm\nimport statsmodels.formula.api as smf",
+        "fetchDatasetCode": "# Please read the dataset in this cell\ndataset = pd.read_csv(\"Module 2B Homework - Dataset.csv\")\ndataset.head()",
+        "questions": [
+          {
+            "description": "Linear regression modeling and coefficient significance",
+            "subquestions": [
+              {
+                "code": "dataset['X6_Blue'] = pd.get_dummies(dataset['X6'])['Blue'].astype('int')\ndataset['X6_Red'] = pd.get_dummies(dataset['X6'])['Red'].astype('int')\ndataset.drop('X6', axis = 1, inplace=True)\nq_1_1 = dataset[0:9]\nq_1_1",
+                "description": " Read the file \"Module 2B Homework - Dataset.csv\" into a dataframe and convert the category column X6 into binary dummary variables (Have \"Yellow\" be the default value). Name the two new variables X6_Blue and X6_Red and convert them to integer types.  Display the first ten rows of the resulting dataset.",
+                "manual": false,
+                "outputType": "dataframe",
+                "points": 20,
+                "tolerance": 0
+              },
+              {
+                "code": "y = dataset['Y']\nX = dataset.drop('Y', axis = 1)\nX_b = sm.add_constant(X)\nmodel_1 = sm.OLS(y, X_b)\nmodel_1_results = model_1.fit()\n\n# Extract coefficients and p-values from fit model\ncoefficients = model_1_results.params\np_values = model_1_results.pvalues\n\n# Create a DataFrame with the results\nresults_df = pd.DataFrame({\n   'Coefficient': coefficients,\n   'P-value': p_values\n})\n\nq_1_2 = results_df\nq_1_2",
+                "description": "Using statsodels, perform a regression for Y using X1 through X5 and your dummy variables.  Use the results and create a dataframe of coefficients showing the coefficient value and and the p-value for each coefficient.",
+                "manual": false,
+                "outputType": "dataframe",
+                "points": 20,
+                "tolerance": 0
+              },
+              {
+                "code": "q_1_3 = model_1_rsquared = model_1_results.rsquared\nq_1_3",
+                "description": "Show the resulting R_squared value of your modl",
+                "manual": false,
+                "outputType": "number",
+                "points": 10,
+                "tolerance": 0
+              },
+              {
+                "code": "",
+                "description": "Which predictors appear to not have a statistically significant relationship to the response variable? ",
+                "manual": true,
+                "outputType": "text",
+                "points": 10,
+                "tolerance": 0
+              },
+              {
+                "code": "X_2b = sm.add_constant(X)\nmodel_2 = sm.OLS(y,X_2b)\nmodel_2_results = model_2.fit()\nq_1_5 = model_2_results.rsquared\nq_1_5",
+                "description": " Re-run the regression without the insignificant predictors and display the model's resulting R-squared value",
+                "manual": false,
+                "outputType": "number",
+                "points": 10,
+                "tolerance": 0
+              },
+              {
+                "code": "",
+                "description": "Write the resulting regression equation",
+                "manual": true,
+                "outputType": "text",
+                "points": 10,
+                "tolerance": 0
+              }
+            ],
+            "title": "Coefficient significance"
+          }
+        ]
+      },
+      "state": "Published"
+    }
+  ],
+  "accounts": [
+    {
+      "username": "cwei7837@usc.edu",
+      "firstName": "Chentao",
+      "lastName": "Wei",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "username": "xizhulin@usc.edu",
+      "firstName": "Xizhu",
+      "lastName": "Lin",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "username": "admin",
+      "firstName": "admin",
+      "lastName": "",
+      "password": "",
+      "role": "INSTRUCTOR"
+    },
+    {
+      "username": "ypan4655@usc.edu",
+      "firstName": "Yue",
+      "lastName": "Pan",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "username": "brucewil@usc.edu",
+      "firstName": "Bruce",
+      "lastName": "Wilcox",
+      "password": "",
+      "role": "INSTRUCTOR"
+    },
+    {
+      "firstName": "Yiling",
+      "lastName": "Fan",
+      "username": "yilingf@usc.edu",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "firstName": "Chenghao",
+      "lastName": "Zhong",
+      "username": "czhong71@usc.edu",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "firstName": "Yuhan",
+      "lastName": "He",
+      "username": "heyuhan@usc.edu",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "firstName": "Yan",
+      "lastName": "Fang",
+      "username": "yanfang@usc.edu",
+      "password": "",
+      "role": "TA"
+    },
+    {
+      "firstName": "Chuqian",
+      "lastName": "Chen",
+      "username": "chuqianc@usc.edu",
+      "password": "",
+      "role": "TA"
+    }
+  ]
+}
